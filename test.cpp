@@ -51,11 +51,40 @@ let result = add(five, ten);\
   return test_next_token(tests, input);
 }
 
+bool third_next_token_test() {
+  std::string input{"\
+!-/*5;\
+5 < 10 > 5;\
+if (5 < 10) {\
+	return true;\
+} else {\
+	return false;\
+}\
+\
+10 == 10;\
+10 != 9;\
+"};
+  std::vector<std::string> tests{
+
+      "BANG",      "MINUS",   "SLASH",     "ASTERISK",  "INT(5)",  "SEMICOLON",
+      "INT(5)",    "LT",      "INT(10)",   "GT",        "INT(5)",  "SEMICOLON",
+      "IF",        "LPAREN",  "INT(5)",    "LT",        "INT(10)", "RPAREN",
+      "LBRACE",    "RETURN",  "TRUE",      "SEMICOLON", "RBRACE",  "ELSE",
+      "LBRACE",    "RETURN",  "FALSE",     "SEMICOLON", "RBRACE",  "INT(10)",
+      "EQ",        "INT(10)", "SEMICOLON", "INT(10)",   "NOT_EQ",  "INT(9)",
+      "SEMICOLON", "EOF",
+  };
+  return test_next_token(tests, input);
+}
+
 int main() {
   if (!first_next_token_test()) {
     return 1;
   }
   if (!second_next_token_test()) {
+    return 1;
+  }
+  if (!third_next_token_test()) {
     return 1;
   }
 

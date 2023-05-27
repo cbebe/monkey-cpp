@@ -16,6 +16,15 @@ struct Int {
 // Operators
 struct Assign {};
 struct Plus {};
+struct Minus {};
+struct Bang {};
+struct Asterisk {};
+struct Slash {};
+
+struct LT {};
+struct GT {};
+struct Eq {};
+struct NotEq {};
 
 // Delimiters
 struct Comma {};
@@ -29,10 +38,16 @@ struct RBrace {};
 // Keywords
 struct Function {};
 struct Let {};
+struct True {};
+struct False {};
+struct If {};
+struct Else {};
+struct Return {};
 
 using token_type =
-    std::variant<Illegal, Eof, Ident, Int, Assign, Plus, Comma, Semicolon,
-                 LParen, RParen, LBrace, RBrace, Function, Let>;
+    std::variant<Illegal, Eof, Ident, Int, Assign, Plus, Minus, Bang, Asterisk,
+                 Slash, LT, GT, Eq, NotEq, Comma, Semicolon, LParen, RParen,
+                 LBrace, RBrace, Function, Let, True, False, If, Else, Return>;
 } // namespace token_types
 
 template <class> inline constexpr bool always_false_v = false;
@@ -59,6 +74,22 @@ struct Token {
             ret_val = "ASSIGN";
           else if constexpr (std::is_same_v<T, Plus>)
             ret_val = "PLUS";
+          else if constexpr (std::is_same_v<T, Minus>)
+            ret_val = "MINUS";
+          else if constexpr (std::is_same_v<T, Bang>)
+            ret_val = "BANG";
+          else if constexpr (std::is_same_v<T, Slash>)
+            ret_val = "SLASH";
+          else if constexpr (std::is_same_v<T, Asterisk>)
+            ret_val = "ASTERISK";
+          else if constexpr (std::is_same_v<T, LT>)
+            ret_val = "LT";
+          else if constexpr (std::is_same_v<T, GT>)
+            ret_val = "GT";
+          else if constexpr (std::is_same_v<T, Eq>)
+            ret_val = "EQ";
+          else if constexpr (std::is_same_v<T, NotEq>)
+            ret_val = "NOT_EQ";
           else if constexpr (std::is_same_v<T, Comma>)
             ret_val = "COMMA";
           else if constexpr (std::is_same_v<T, Semicolon>)
@@ -75,6 +106,16 @@ struct Token {
             ret_val = "FUNCTION";
           else if constexpr (std::is_same_v<T, Let>)
             ret_val = "LET";
+          else if constexpr (std::is_same_v<T, True>)
+            ret_val = "TRUE";
+          else if constexpr (std::is_same_v<T, False>)
+            ret_val = "FALSE";
+          else if constexpr (std::is_same_v<T, If>)
+            ret_val = "IF";
+          else if constexpr (std::is_same_v<T, Else>)
+            ret_val = "ELSE";
+          else if constexpr (std::is_same_v<T, Return>)
+            ret_val = "RETURN";
           else
             static_assert(always_false_v<T>, "non-exhaustive visitor!");
 
