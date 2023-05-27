@@ -1,4 +1,4 @@
-#include "token.cpp"
+#include "lexer.hpp"
 #include <iostream>
 
 int main() {

@@ -2,4 +2,6 @@
 monke
 monke_test
 
+*.o
+
 compile_commands.json

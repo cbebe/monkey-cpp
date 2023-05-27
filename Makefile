@@ -1,20 +1,24 @@
-SRC := token.cpp lexer.cpp
+OBJ := token.o lexer.o
+CPPFLAGS := -std=c++20
 all: monke
 	./$<
 
-monke: main.cpp $(SRC)
-	g++ -o $@ -std=c++20 $<
+monke: $(OBJ) main.o
+	g++ -o $@ $(CPPFLAGS) $^
+
+%.o: %.cpp
+	g++ -c -o $@ $(CPPFLAGS) $<
 
 test: monke_test
 	./$<
 
-monke_test: test.cpp $(SRC)
-	g++ -o $@ -std=c++20 $<
+monke_test: $(OBJ) test.o
+	g++ -o $@ $(CPPFLAGS) $^
 
 compile_commands.json:
 	bear -- $(MAKE) all
 
 clean:
-	rm -f main.o compile_commands.json
+	rm -f *.o compile_commands.json monke monke_test
 
 .PHONY: clean test
