@@ -4,8 +4,8 @@
 bool test_next_token() {
   std::string input{"=+(){},;"};
   auto tests = {
-      "ASSIGN", "PLUS",   "LPAREN", "RPAREN",
-      "LBRACE", "RBRACE", "COMMA",  "SEMICOLON",
+      "ASSIGN", "PLUS",  "LPAREN",    "RPAREN", "LBRACE",
+      "RBRACE", "COMMA", "SEMICOLON", "EOF",
   };
 
   Lexer l{input};
@@ -17,6 +17,7 @@ bool test_next_token() {
     }
   }
 
+  std::cout << "PASS" << std::endl;
   return true;
 }
 
