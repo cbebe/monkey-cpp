@@ -1,6 +1,5 @@
 .cache
-monke
-monke_test
+monke_*
 
 *.o
 

@@ -1,9 +1,9 @@
 OBJ := token.o lexer.o
 CPPFLAGS := -std=c++20
-all: monke
+all: monke_repl
 	./$<
 
-monke: $(OBJ) main.o
+monke_repl: $(OBJ) repl.o
 	g++ -o $@ $(CPPFLAGS) $^
 
 %.o: %.cpp
@@ -19,6 +19,6 @@ compile_commands.json:
 	bear -- $(MAKE) all
 
 clean:
-	rm -f *.o compile_commands.json monke monke_test
+	rm -f *.o compile_commands.json monke_repl monke_test
 
 .PHONY: clean test
