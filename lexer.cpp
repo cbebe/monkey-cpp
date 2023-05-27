@@ -9,6 +9,7 @@ public:
 
 private:
   void read_char();
+  char peek_char();
   int read_number();
   void skip_whitespace();
   std::string read_identifier();
@@ -32,6 +33,16 @@ Token lookup_identifier(std::string word) {
     return new_token(Function{});
   } else if (word == "let") {
     return new_token(Let{});
+  } else if (word == "if") {
+    return new_token(If{});
+  } else if (word == "else") {
+    return new_token(Else{});
+  } else if (word == "true") {
+    return new_token(True{});
+  } else if (word == "false") {
+    return new_token(False{});
+  } else if (word == "return") {
+    return new_token(Return{});
   } else {
     return new_token(Ident{word});
   }
@@ -42,13 +53,35 @@ Token Lexer::next_token() {
   Token tok{Eof{}};
   skip_whitespace();
   switch (ch) {
-    // clang-format off
-  case '=': tok = new_token(Assign{}); break;
+  case '=': {
+    if (peek_char() == '=') {
+      read_char();
+      tok = new_token(Eq{});
+    } else {
+      tok = new_token(Assign{});
+    }
+    break;
+  }
+  case '!': {
+    if (peek_char() == '=') {
+      read_char();
+      tok = new_token(NotEq{});
+    } else {
+      tok = new_token(Bang{});
+    }
+    break;
+  }
+  // clang-format off
   case ';': tok = new_token(Semicolon{}); break;
   case '(': tok = new_token(LParen{}); break;
   case ')': tok = new_token(RParen{}); break;
   case ',': tok = new_token(Comma{}); break;
   case '+': tok = new_token(Plus{}); break;
+  case '-': tok = new_token(Minus{}); break;
+  case '/': tok = new_token(Slash{}); break;
+  case '*': tok = new_token(Asterisk{}); break;
+  case '<': tok = new_token(LT{}); break;
+  case '>': tok = new_token(GT{}); break;
   case '{': tok = new_token(LBrace{}); break;
   case '}': tok = new_token(RBrace{}); break;
   case   0: tok = new_token(Eof{}); break;
@@ -82,6 +115,14 @@ void Lexer::read_char() {
     ch = input[read_position];
   }
   position = read_position++;
+}
+
+char Lexer::peek_char() {
+  if (read_position >= input.length()) {
+    return 0;
+  } else {
+    return input[read_position];
+  }
 }
 
 void Lexer::skip_whitespace() {
