@@ -4,11 +4,11 @@
 
 bool test_next_token(std::vector<std::string> tests, std::string input) {
   Lexer l{input};
-  for (auto c : tests) {
+  for (std::size_t i = 0, e = tests.size(); i != e; ++i) {
     auto got = l.next_token();
-    if (got.to_string() != c) {
-      std::cout << "Failed test, got: " << got.to_string() << ". want: " << c
-                << std::endl;
+    if (got.to_string() != tests[i]) {
+      std::cout << "Failed test " << i + 1 << ". got: " << got.to_string()
+                << ". want: " << tests[i] << std::endl;
       return false;
     }
   }
