@@ -55,5 +55,16 @@ struct Token {
   Token() : value{token_types::Eof{}} {}
   token_types::token_type value;
   Token(token_types::token_type v) : value{v} {}
-  std::string to_string();
+  std::string to_string() const;
+  template <typename TokenType> bool is_type() const {
+    return std::visit(
+        [](auto &&arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, TokenType>) {
+            return true;
+          }
+          return false;
+        },
+        value);
+  }
 };

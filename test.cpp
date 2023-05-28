@@ -6,9 +6,9 @@
 bool test_next_token(std::vector<std::string> tests, std::string input) {
   Lexer l{input};
   for (std::size_t i = 0, e = tests.size(); i != e; ++i) {
-    auto got{l.next_token()};
-    if (got.to_string() != tests[i]) {
-      std::cout << "Failed test " << i + 1 << ". got: " << got.to_string()
+    auto got{l.next_token().to_string()};
+    if (got != tests[i]) {
+      std::cout << "Failed test " << i + 1 << ". got: " << got
                 << ". want: " << tests[i] << std::endl;
       return false;
     }
@@ -92,16 +92,16 @@ let foobar = 838383;\
     std::cout << "Failed test: program is null" << std::endl;
     return false;
   }
-  if (program->statements.size() != 3) {
-    std::cout << "Failed test: program does not contain 3 statements"
-              << std::endl;
+  auto length{program->statements.size()};
+  if (length != 3) {
+    std::cout << "Failed test: program does not contain 3 statements. Got: "
+              << length << std::endl;
     return false;
   }
-
   std::vector tests{"x", "y", "foobar"};
 
   for (std::size_t i = 0; i < program->statements.size(); i++) {
-    auto statement{dynamic_cast<LetStatement *>(&program->statements[i])};
+    auto statement{dynamic_cast<LetStatement *>(program->statements[i])};
     if (!statement) {
       std::cout << "Failed test: not a let statement" << std::endl;
       return false;
@@ -110,9 +110,11 @@ let foobar = 838383;\
     if (ident != tests[i]) {
       std::cout << "Failed test: got identifier: " << ident
                 << ". want: " << tests[i] << std::endl;
+      return false;
     }
   }
 
+  std::cout << "PASS" << std::endl;
   return true;
 }
 

@@ -14,7 +14,8 @@ int main() {
   print_prompt();
   for (std::string line; std::getline(std::cin, line);) {
     Lexer l{line};
-    for (auto t{l.next_token()}; t.to_string() != "EOF"; t = l.next_token()) {
+    for (auto t{l.next_token()}; !t.is_type<token_types::Eof>();
+         t = l.next_token()) {
       std::cout << t.to_string() << std::endl;
     }
     print_prompt();

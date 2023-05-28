@@ -4,7 +4,7 @@
 
 template <class> inline constexpr bool always_false_v = false;
 
-std::string Token::to_string() {
+std::string Token::to_string() const {
   using namespace token_types;
   return std::visit(
       [](auto &&arg) {
