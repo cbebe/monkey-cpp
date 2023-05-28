@@ -1,0 +1,5 @@
+procs:
+  test:
+    shell: 'make test'
+  repl:
+    shell: 'make'

@@ -35,7 +35,7 @@ Token lookup_identifier(std::string word) {
 
 Token Lexer::next_token() {
   using namespace token_types;
-  Token tok{Eof{}};
+  Token tok;
   skip_whitespace();
   switch (ch) {
   case '=': {
@@ -73,8 +73,7 @@ Token Lexer::next_token() {
   // clang-format on
   default:
     if (is_letter(ch)) {
-      auto word = read_identifier();
-      return lookup_identifier(word);
+      return lookup_identifier(read_identifier());
     } else if (is_digit(ch)) {
       return new_token(Int{read_number()});
     } else {
@@ -86,7 +85,7 @@ Token Lexer::next_token() {
 }
 
 std::string Lexer::read_identifier() {
-  auto start = position;
+  auto start{position};
   while (is_letter(ch)) {
     read_char();
   }
@@ -117,7 +116,7 @@ void Lexer::skip_whitespace() {
 }
 
 int Lexer::read_number() {
-  auto start = position;
+  auto start{position};
   while (is_digit(ch)) {
     read_char();
   }

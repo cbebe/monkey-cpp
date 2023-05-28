@@ -1,8 +1,8 @@
-OBJ := obj/token.o obj/lexer.o obj/ast.o
+OBJ := obj/token.o obj/lexer.o obj/ast.o obj/parser.o
 CPPFLAGS := -std=c++20
 
 run: monke_repl
-	./$<
+	@./$<
 
 all: monke_repl
 
@@ -19,7 +19,7 @@ obj:
 	mkdir -p $@
 
 test: monke_test
-	./$<
+	@./$<
 
 monke_test: $(OBJ) test.o
 	g++ -o $@ $(CPPFLAGS) $^

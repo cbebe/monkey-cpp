@@ -52,6 +52,7 @@ using token_type =
 } // namespace token_types
 
 struct Token {
+  Token() : value{token_types::Eof{}} {}
   token_types::token_type value;
   Token(token_types::token_type v) : value{v} {}
   std::string to_string();

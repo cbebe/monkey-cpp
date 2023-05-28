@@ -1,11 +1,12 @@
 #include "src/lexer.hpp"
+#include "src/parser.hpp"
 #include <iostream>
 #include <vector>
 
 bool test_next_token(std::vector<std::string> tests, std::string input) {
   Lexer l{input};
   for (std::size_t i = 0, e = tests.size(); i != e; ++i) {
-    auto got = l.next_token();
+    auto got{l.next_token()};
     if (got.to_string() != tests[i]) {
       std::cout << "Failed test " << i + 1 << ". got: " << got.to_string()
                 << ". want: " << tests[i] << std::endl;
@@ -77,6 +78,44 @@ if (5 < 10) {\
   return test_next_token(tests, input);
 }
 
+bool test_let_statements() {
+  std::string input{"\
+let x = 5;\
+let y = 10;\
+let foobar = 838383;\
+"};
+  Lexer l{input};
+  Parser p{l};
+
+  auto program{p.parse_program()};
+  if (!program) {
+    std::cout << "Failed test: program is null" << std::endl;
+    return false;
+  }
+  if (program->statements.size() != 3) {
+    std::cout << "Failed test: program does not contain 3 statements"
+              << std::endl;
+    return false;
+  }
+
+  std::vector tests{"x", "y", "foobar"};
+
+  for (std::size_t i = 0; i < program->statements.size(); i++) {
+    auto statement{dynamic_cast<LetStatement *>(&program->statements[i])};
+    if (!statement) {
+      std::cout << "Failed test: not a let statement" << std::endl;
+      return false;
+    }
+    auto ident{statement->identifier.value};
+    if (ident != tests[i]) {
+      std::cout << "Failed test: got identifier: " << ident
+                << ". want: " << tests[i] << std::endl;
+    }
+  }
+
+  return true;
+}
+
 int main() {
   if (!first_next_token_test()) {
     return 1;
@@ -85,6 +124,9 @@ int main() {
     return 1;
   }
   if (!third_next_token_test()) {
+    return 1;
+  }
+  if (!test_let_statements()) {
     return 1;
   }
 
