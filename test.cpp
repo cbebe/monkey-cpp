@@ -88,6 +88,14 @@ let foobar = 838383;\
   Parser p{l};
 
   auto program{p.parse_program()};
+  if (p.errors.size() > 0) {
+    std::cout << "parser error:" << std::endl;
+    for (auto &e : p.errors) {
+      std::cout << e << std::endl;
+    }
+
+    return false;
+  };
   if (!program) {
     std::cout << "Failed test: program is null" << std::endl;
     return false;

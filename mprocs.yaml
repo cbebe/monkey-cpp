@@ -1,5 +1,13 @@
 procs:
+  nvim:
+    cmd: [nvim, .]
   test:
-    shell: 'make test'
+    cmd: [make, test]
   repl:
-    shell: 'make'
+    cmd: [make]
+    autostart: false
+  clean:
+    cmd: [make, clean]
+    autostart: false
+proc_list_width: 17
+hide_keymap_window: true

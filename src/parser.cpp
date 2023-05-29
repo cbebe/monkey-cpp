@@ -27,14 +27,12 @@ Statement *Parser::parse_statement() {
 
 LetStatement *Parser::parse_let_statement() {
   if (!expect_peek<Ident>()) {
-    std::cout << "wot" << std::endl;
     return nullptr;
   }
 
   Identifier identifier{std::get<Ident>(cur_token.value).literal};
 
   if (!expect_peek<Assign>()) {
-    std::cout << "wot" << std::endl;
     return nullptr;
   }
 
@@ -46,11 +44,18 @@ LetStatement *Parser::parse_let_statement() {
   return new LetStatement{identifier, nullptr};
 }
 
+template <typename TokenType> void Parser::peek_error(Token t) {
+  auto message = "expected next token to be " + type_string<TokenType>() +
+                 ". got " + t.to_string();
+  errors.push_back(message);
+}
+
 template <typename TokenType> bool Parser::expect_peek() {
   if (peek_token.is_type<TokenType>()) {
     next_token();
     return true;
   } else {
+    peek_error<TokenType>(peek_token);
     return false;
   }
 }

@@ -68,3 +68,5 @@ struct Token {
         value);
   }
 };
+
+template <typename TokenType> std::string type_string();
