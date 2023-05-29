@@ -17,6 +17,7 @@ private:
   template <typename TokenType> void peek_error(Token t);
   Statement *parse_statement();
   LetStatement *parse_let_statement();
+  ReturnStatement *parse_return_statement();
   Token cur_token;
   Token peek_token;
   Lexer lexer;

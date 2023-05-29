@@ -78,6 +78,31 @@ if (5 < 10) {\
   return test_next_token(tests, input);
 }
 
+std::unique_ptr<Program> parser_pre_checks(Parser &p,
+                                           std::unique_ptr<Program> program,
+                                           int num_statements) {
+  if (p.errors.size() > 0) {
+    std::cout << "parser error:" << std::endl;
+    for (auto &e : p.errors) {
+      std::cout << e << std::endl;
+    }
+
+    return nullptr;
+  };
+  if (!program) {
+    std::cout << "Failed test: program is null" << std::endl;
+    return nullptr;
+  }
+  auto length{program->statements.size()};
+  if (length != 3) {
+    std::cout << "Failed test: program does not contain 3 statements. Got: "
+              << length << std::endl;
+    return nullptr;
+  }
+
+  return std::move(program);
+}
+
 bool test_let_statements() {
   std::string input{"\
 let x = 5;\
@@ -88,25 +113,12 @@ let foobar = 838383;\
   Parser p{l};
 
   auto program{p.parse_program()};
-  if (p.errors.size() > 0) {
-    std::cout << "parser error:" << std::endl;
-    for (auto &e : p.errors) {
-      std::cout << e << std::endl;
-    }
 
-    return false;
-  };
-  if (!program) {
-    std::cout << "Failed test: program is null" << std::endl;
-    return false;
-  }
-  auto length{program->statements.size()};
-  if (length != 3) {
-    std::cout << "Failed test: program does not contain 3 statements. Got: "
-              << length << std::endl;
-    return false;
-  }
   std::vector tests{"x", "y", "foobar"};
+  program = parser_pre_checks(p, std::move(program), tests.size());
+  if (!program) {
+    return false;
+  }
 
   for (std::size_t i = 0; i < program->statements.size(); i++) {
     auto statement{dynamic_cast<LetStatement *>(program->statements[i])};
@@ -126,6 +138,34 @@ let foobar = 838383;\
   return true;
 }
 
+bool test_return_statements() {
+  std::string input{"\
+return 5;\
+return 10;\
+return 993322;\
+"};
+  Lexer l{input};
+  Parser p{l};
+
+  auto program{p.parse_program()};
+
+  program = parser_pre_checks(p, std::move(program), 3);
+  if (!program) {
+    return false;
+  }
+
+  for (std::size_t i = 0; i < program->statements.size(); i++) {
+    auto statement{dynamic_cast<ReturnStatement *>(program->statements[i])};
+    if (!statement) {
+      std::cout << "Failed test: not a return statement" << std::endl;
+      return false;
+    }
+  }
+
+  std::cout << "PASS" << std::endl;
+  return true;
+}
+
 int main() {
   if (!first_next_token_test()) {
     return 1;
@@ -137,6 +177,9 @@ int main() {
     return 1;
   }
   if (!test_let_statements()) {
+    return 1;
+  }
+  if (!test_return_statements()) {
     return 1;
   }
 

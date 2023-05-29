@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include <iostream>
 #include <memory>
+#include <string>
 
 using namespace token_types;
 
@@ -21,8 +22,22 @@ Statement *Parser::parse_statement() {
   if (cur_token.is_type<Let>()) {
     return parse_let_statement();
   }
+  if (cur_token.is_type<Return>()) {
+    return parse_return_statement();
+  }
 
   return nullptr;
+}
+
+ReturnStatement *Parser::parse_return_statement() {
+  next_token();
+
+  // TODO: parse expression
+  while (cur_token.is_type<Semicolon>()) {
+    next_token();
+  }
+
+  return new ReturnStatement{nullptr};
 }
 
 LetStatement *Parser::parse_let_statement() {

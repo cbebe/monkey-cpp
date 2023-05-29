@@ -43,4 +43,11 @@ public:
   std::unique_ptr<Expression> value;
 };
 
+class ReturnStatement : public Statement {
+public:
+  ReturnStatement(Expression *v) : value(v) {}
+  virtual std::string token_literal() const override { return "RETURN"; }
+  std::unique_ptr<Expression> value;
+};
+
 // vim:foldmethod=marker
