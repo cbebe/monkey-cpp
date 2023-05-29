@@ -18,7 +18,7 @@ bool test_next_token(std::vector<std::string> tests, std::string input) {
   return true;
 }
 
-Token t(token_types::token_type type) { return Token{type}; }
+Token t(token_types::TokenVariant type) { return Token{type}; }
 
 bool first_next_token_test() {
   auto input{"=+(){},;"};

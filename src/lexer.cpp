@@ -4,7 +4,7 @@
 
 Lexer::Lexer(std::string input) : input{input} { read_char(); };
 
-Token new_token(token_types::token_type t) { return Token{t}; }
+Token new_token(token_types::TokenVariant t) { return Token{t}; }
 
 bool is_letter(char ch) {
   return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_';

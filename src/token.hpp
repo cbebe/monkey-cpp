@@ -45,7 +45,7 @@ struct If {};
 struct Else {};
 struct Return {};
 
-using token_type =
+using TokenVariant =
     std::variant<Illegal, Eof, Ident, Int, Assign, Plus, Minus, Bang, Asterisk,
                  Slash, LT, GT, Eq, NotEq, Comma, Semicolon, LParen, RParen,
                  LBrace, RBrace, Function, Let, True, False, If, Else, Return>;
@@ -53,8 +53,8 @@ using token_type =
 
 struct Token {
   Token() : value{token_types::Eof{}} {}
-  token_types::token_type value;
-  Token(token_types::token_type v) : value{v} {}
+  token_types::TokenVariant value;
+  Token(token_types::TokenVariant v) : value{v} {}
   std::string to_string() const;
   template <typename TokenType> bool is_type() const {
     return std::visit(

@@ -1,8 +1,11 @@
 OBJ := obj/token.o obj/lexer.o obj/ast.o obj/parser.o
 CPPFLAGS := -std=c++20
 
-run: monke_repl
+parser: monke_repl
 	@./$<
+
+lexer: monke_repl
+	@./$< lex
 
 all: monke_repl
 
