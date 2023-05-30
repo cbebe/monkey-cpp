@@ -33,6 +33,12 @@ std::string Identifier::token_literal() const { return "IDENT"; }
 std::string Identifier::to_string() const { return value; }
 // }}}
 
+// {{{ IntegerLiteral
+IntegerLiteral::IntegerLiteral(int v) : value(v) {}
+std::string IntegerLiteral::token_literal() const { return "INT"; }
+std::string IntegerLiteral::to_string() const { return std::to_string(value); }
+// }}}
+
 // {{{ LetStatement
 LetStatement::LetStatement(Identifier i, Expression *v)
     : identifier(i), value(v) {}

@@ -1,8 +1,8 @@
 #include "parser.hpp"
 #include "ast.hpp"
-#include <iostream>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 using namespace token_types;
 
@@ -26,14 +26,33 @@ Statement *Parser::parse_statement() {
     return parse_return_statement();
   }
 
-  return nullptr;
+  return parse_expression_statement();
+}
+
+Expression *Parser::parse_expression(Precedence p) {
+  auto prefix = prefix_parse_fns[cur_token.value];
+  if (!prefix) {
+    return nullptr;
+  }
+  auto left_exp{(this->*prefix)()};
+
+  return left_exp;
+}
+
+ExpressionStatement *Parser::parse_expression_statement() {
+  Expression *expr{parse_expression(LOWEST)};
+  if (peek_token.is_type<Semicolon>()) {
+    next_token();
+  }
+
+  return new ExpressionStatement{expr};
 }
 
 ReturnStatement *Parser::parse_return_statement() {
   next_token();
 
   // TODO: parse expression
-  while (cur_token.is_type<Semicolon>()) {
+  while (!cur_token.is_type<Semicolon>()) {
     next_token();
   }
 
@@ -51,7 +70,7 @@ LetStatement *Parser::parse_let_statement() {
     return nullptr;
   }
 
-  while (cur_token.is_type<Semicolon>()) {
+  while (!cur_token.is_type<Semicolon>()) {
     next_token();
   }
 
@@ -80,7 +99,26 @@ void Parser::next_token() {
   peek_token = lexer.next_token();
 }
 
+void Parser::register_prefix(TokenVariant t, PrefixParseFn fn) {
+  prefix_parse_fns.insert(std::make_pair(t, fn));
+}
+
+void Parser::register_infix(TokenVariant t, InfixParseFn fn) {
+  infix_parse_fns.insert(std::make_pair(t, fn));
+}
+
+Expression *Parser::parse_identifier() {
+  return new Identifier{std::get<Ident>(cur_token.value).literal};
+}
+
+Expression *Parser::parse_integer_literal() {
+  return new IntegerLiteral{std::get<Int>(cur_token.value).value};
+}
+
 Parser::Parser(Lexer l) : lexer(l) {
   next_token();
   next_token();
+
+  register_prefix(Ident{}, &Parser::parse_identifier);
+  register_prefix(Int{}, &Parser::parse_integer_literal);
 };

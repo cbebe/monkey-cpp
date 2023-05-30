@@ -28,15 +28,23 @@ public:
 
 class Identifier : public Expression {
 public:
-  Identifier(std::string v);
+  Identifier(std::string);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::string value;
 };
 
+class IntegerLiteral : public Expression {
+public:
+  IntegerLiteral(int);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  int value;
+};
+
 class LetStatement : public Statement {
 public:
-  LetStatement(Identifier i, Expression *v);
+  LetStatement(Identifier, Expression *);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   Identifier identifier;
@@ -45,7 +53,7 @@ public:
 
 class ReturnStatement : public Statement {
 public:
-  ReturnStatement(Expression *v);
+  ReturnStatement(Expression *);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::unique_ptr<Expression> value;
@@ -53,7 +61,7 @@ public:
 
 class ExpressionStatement : public Statement {
 public:
-  ExpressionStatement(Expression *v);
+  ExpressionStatement(Expression *);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::unique_ptr<Expression> value;

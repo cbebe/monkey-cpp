@@ -94,9 +94,9 @@ std::unique_ptr<Program> parser_pre_checks(Parser &p,
     return nullptr;
   }
   auto length{program->statements.size()};
-  if (length != 3) {
-    std::cout << "Failed test: program does not contain 3 statements. Got: "
-              << length << std::endl;
+  if (length != num_statements) {
+    std::cout << "Failed test: program does not contain " << num_statements
+              << " statements. Got: " << length << std::endl;
     return nullptr;
   }
 
@@ -166,6 +166,78 @@ return 993322;\
   return true;
 }
 
+template <typename To, typename From, typename Deleter>
+std::unique_ptr<To, Deleter>
+dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) {
+  if (To *cast = dynamic_cast<To *>(p.get())) {
+    std::unique_ptr<To, Deleter> result(cast, std::move(p.get_deleter()));
+    p.release();
+    return result;
+  }
+  return std::unique_ptr<To, Deleter>(
+      nullptr); // or throw std::bad_cast() if you prefer
+}
+
+bool test_identifier_expression() {
+  std::string input{"foobar;"};
+  Lexer l{input};
+  Parser p{l};
+
+  auto program{p.parse_program()};
+
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return false;
+  }
+
+  auto statement{dynamic_cast<ExpressionStatement *>(program->statements[0])};
+  if (!statement) {
+    std::cout << "Failed test: not an expression statement" << std::endl;
+    return false;
+  }
+  auto ident{dynamic_unique_cast<Identifier>(std::move(statement->value))};
+  if (!ident) {
+    std::cout << "Failed test: not an identifier" << std::endl;
+    return false;
+  }
+  if (ident->value != "foobar") {
+    std::cout << "Failed test: not foobar" << std::endl;
+    return false;
+  }
+  std::cout << "PASS" << std::endl;
+  return true;
+}
+
+bool test_integer_literal_expression() {
+  std::string input{"5;"};
+  Lexer l{input};
+  Parser p{l};
+
+  auto program{p.parse_program()};
+
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return false;
+  }
+
+  auto statement{dynamic_cast<ExpressionStatement *>(program->statements[0])};
+  if (!statement) {
+    std::cout << "Failed test: not an expression statement" << std::endl;
+    return false;
+  }
+  auto ident{dynamic_unique_cast<IntegerLiteral>(std::move(statement->value))};
+  if (!ident) {
+    std::cout << "Failed test: not an integer literal" << std::endl;
+    return false;
+  }
+  if (ident->value != 5) {
+    std::cout << "Failed test: not 5" << std::endl;
+    return false;
+  }
+  std::cout << "PASS" << std::endl;
+  return true;
+}
+
 int main() {
   if (!first_next_token_test()) {
     return 1;
@@ -180,6 +252,12 @@ int main() {
     return 1;
   }
   if (!test_return_statements()) {
+    return 1;
+  }
+  if (!test_identifier_expression()) {
+    return 1;
+  }
+  if (!test_integer_literal_expression()) {
     return 1;
   }
 
