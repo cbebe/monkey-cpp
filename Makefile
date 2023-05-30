@@ -27,6 +27,7 @@ test: monke_test
 monke_test: $(OBJ) test.o
 	g++ -o $@ $(CPPFLAGS) $^
 
+# did you `sudo apt install libstdc++-12-dev` ??
 compile_commands.json:
 	bear -- $(MAKE) all
 
