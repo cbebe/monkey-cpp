@@ -14,7 +14,7 @@ private:
   void skip_whitespace();
   std::string read_identifier();
   std::string input;
-  int position{0};
-  int read_position{0};
+  size_t position{0};
+  size_t read_position{0};
   char ch{0};
 };

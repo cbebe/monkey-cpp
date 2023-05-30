@@ -1,5 +1,5 @@
 OBJ := obj/token.o obj/lexer.o obj/ast.o obj/parser.o
-CPPFLAGS := -std=c++20
+CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 
 parser: monke_repl
 	@./$<

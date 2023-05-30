@@ -80,7 +80,7 @@ if (5 < 10) {\
 
 std::unique_ptr<Program> parser_pre_checks(Parser &p,
                                            std::unique_ptr<Program> program,
-                                           int num_statements) {
+                                           size_t num_statements) {
   if (p.errors.size() > 0) {
     std::cout << "parser error:" << std::endl;
     for (auto &e : p.errors) {
@@ -100,7 +100,7 @@ std::unique_ptr<Program> parser_pre_checks(Parser &p,
     return nullptr;
   }
 
-  return std::move(program);
+  return program;
 }
 
 bool test_let_statements() {
@@ -171,7 +171,7 @@ std::unique_ptr<To, Deleter>
 dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) {
   if (To *cast = dynamic_cast<To *>(p.get())) {
     std::unique_ptr<To, Deleter> result(cast, std::move(p.get_deleter()));
-    p.release();
+    (void)p.release();
     return result;
   }
   return std::unique_ptr<To, Deleter>(
@@ -238,28 +238,22 @@ bool test_integer_literal_expression() {
   return true;
 }
 
+// Love me some non-syntactic macros
+#define TEST(fn)                                                               \
+  do {                                                                         \
+    if (!fn()) {                                                               \
+      return 1;                                                                \
+    }                                                                          \
+  } while (0)
+
 int main() {
-  if (!first_next_token_test()) {
-    return 1;
-  }
-  if (!second_next_token_test()) {
-    return 1;
-  }
-  if (!third_next_token_test()) {
-    return 1;
-  }
-  if (!test_let_statements()) {
-    return 1;
-  }
-  if (!test_return_statements()) {
-    return 1;
-  }
-  if (!test_identifier_expression()) {
-    return 1;
-  }
-  if (!test_integer_literal_expression()) {
-    return 1;
-  }
+  TEST(first_next_token_test);
+  TEST(second_next_token_test);
+  TEST(third_next_token_test);
+  TEST(test_let_statements);
+  TEST(test_return_statements);
+  TEST(test_identifier_expression);
+  TEST(test_integer_literal_expression);
 
   return 0;
 }
