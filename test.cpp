@@ -103,15 +103,14 @@ std::unique_ptr<Program> parser_pre_checks(Parser &p,
   return program;
 }
 
+Parser parse_input(std::string input) { return Parser{Lexer{input}}; }
+
 bool test_let_statements() {
-  std::string input{"\
+  Parser p{parse_input("\
 let x = 5;\
 let y = 10;\
 let foobar = 838383;\
-"};
-  Lexer l{input};
-  Parser p{l};
-
+")};
   auto program{p.parse_program()};
 
   std::vector tests{"x", "y", "foobar"};
@@ -139,14 +138,11 @@ let foobar = 838383;\
 }
 
 bool test_return_statements() {
-  std::string input{"\
+  Parser p{parse_input("\
 return 5;\
 return 10;\
 return 993322;\
-"};
-  Lexer l{input};
-  Parser p{l};
-
+")};
   auto program{p.parse_program()};
 
   program = parser_pre_checks(p, std::move(program), 3);
@@ -179,10 +175,7 @@ dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) {
 }
 
 bool test_identifier_expression() {
-  std::string input{"foobar;"};
-  Lexer l{input};
-  Parser p{l};
-
+  Parser p{parse_input("foobar;")};
   auto program{p.parse_program()};
 
   program = parser_pre_checks(p, std::move(program), 1);
@@ -209,10 +202,7 @@ bool test_identifier_expression() {
 }
 
 bool test_integer_literal_expression() {
-  std::string input{"5;"};
-  Lexer l{input};
-  Parser p{l};
-
+  Parser p{parse_input("5;")};
   auto program{p.parse_program()};
 
   program = parser_pre_checks(p, std::move(program), 1);
