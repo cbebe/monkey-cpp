@@ -1,4 +1,14 @@
-OBJ := obj/token.o obj/lexer.o obj/ast.o obj/parser.o
+OBJ := \
+	obj/token.o \
+	obj/lexer.o \
+	obj/ast.o \
+	obj/parser.o
+
+TEST_OBJ := \
+	test_obj/test_next_token.o \
+	test_obj/test_statements.o \
+	test_obj/test_expressions.o
+
 CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 
 parser: monke_repl
@@ -18,13 +28,19 @@ monke_repl: $(OBJ) repl.o
 obj/%.o: src/%.cpp src/%.hpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
+test_obj/%.o: tests/%.cpp tests/tests.hpp | test_obj
+	g++ -c -o $@ $(CPPFLAGS) $<
+
 obj:
+	mkdir -p $@
+
+test_obj:
 	mkdir -p $@
 
 test: monke_test
 	@./$<
 
-monke_test: $(OBJ) test.o
+monke_test: $(OBJ) $(TEST_OBJ) test.o
 	g++ -o $@ $(CPPFLAGS) $^
 
 # did you `sudo apt install libstdc++-12-dev` ??
@@ -35,6 +51,6 @@ clean-lsp:
 	rm -f compile_commands.json
 
 clean:
-	rm -rf *.o obj monke_repl monke_test
+	rm -rf *.o obj test_obj monke_repl monke_test
 
 .PHONY: clean clean-lsp test lsp run all
