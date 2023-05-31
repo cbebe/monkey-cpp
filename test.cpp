@@ -17,6 +17,7 @@ int main() {
   TEST(test_identifier_expression);
   TEST(test_integer_literal_expression);
   TEST(test_prefix_expression);
+  TEST(test_infix_expression);
 
   return 0;
 }

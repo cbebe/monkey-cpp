@@ -35,4 +35,13 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_prefix(Int{}, &Parser::parse_integer_literal);
   register_prefix(Bang{}, &Parser::parse_prefix_expression);
   register_prefix(Minus{}, &Parser::parse_prefix_expression);
+
+  register_infix(Plus{}, &Parser::parse_infix_expression);
+  register_infix(Minus{}, &Parser::parse_infix_expression);
+  register_infix(Slash{}, &Parser::parse_infix_expression);
+  register_infix(Asterisk{}, &Parser::parse_infix_expression);
+  register_infix(Eq{}, &Parser::parse_infix_expression);
+  register_infix(NotEq{}, &Parser::parse_infix_expression);
+  register_infix(LT{}, &Parser::parse_infix_expression);
+  register_infix(GT{}, &Parser::parse_infix_expression);
 };

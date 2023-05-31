@@ -50,6 +50,19 @@ std::string PrefixExpression::to_string() const {
 }
 // }}}
 
+// {{{ InfixExpression
+InfixExpression::InfixExpression(Expression *left,
+                                 token_types::TokenVariant prefix,
+                                 Expression *right)
+    : left(left), oper(prefix), right(right) {}
+std::string InfixExpression::token_literal() const { return "INFIX"; }
+std::string InfixExpression::to_string() const {
+  auto left_val{left ? left->to_string() : "<NIL>"};
+  auto right_val{right ? right->to_string() : "<NIL>"};
+  return "(" + left_val + " " + Token{oper}.to_string() + " " + right_val + ")";
+}
+// }}}
+
 // {{{ LetStatement
 LetStatement::LetStatement(Identifier i, Expression *v)
     : identifier(i), value(v) {}

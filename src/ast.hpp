@@ -50,6 +50,16 @@ public:
   std::unique_ptr<Expression> right;
 };
 
+class InfixExpression : public Expression {
+public:
+  InfixExpression(Expression *, token_types::TokenVariant, Expression *);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  token_types::TokenVariant oper;
+  std::unique_ptr<Expression> left;
+  std::unique_ptr<Expression> right;
+};
+
 class LetStatement : public Statement {
 public:
   LetStatement(Identifier, Expression *);

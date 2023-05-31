@@ -53,9 +53,13 @@ private:
   Expression *parse_identifier();
   Expression *parse_integer_literal();
   Expression *parse_prefix_expression();
+  Expression *parse_infix_expression(Expression *);
 
   void register_prefix(token_types::TokenVariant, PrefixParseFn);
   void register_infix(token_types::TokenVariant, InfixParseFn);
+
+  Precedence peek_predence();
+  Precedence cur_predence();
 
   Token cur_token;
   Token peek_token;

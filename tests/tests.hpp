@@ -39,3 +39,4 @@ dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) {
 bool test_identifier_expression();
 bool test_integer_literal_expression();
 bool test_prefix_expression();
+bool test_infix_expression();

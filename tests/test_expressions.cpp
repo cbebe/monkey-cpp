@@ -122,3 +122,65 @@ bool test_prefix_expression() {
   std::cout << "PASS" << std::endl;
   return true;
 }
+
+bool test_infix_expression() {
+  struct infix_test_case {
+    std::string input;
+    int left;
+    token_types::TokenVariant oper;
+    int right;
+  };
+  using namespace token_types;
+  auto tests = std::vector{
+      infix_test_case{"5 + 5;", 5, Plus{}, 5},
+      infix_test_case{"5 - 5;", 5, Minus{}, 5},
+      infix_test_case{"5 * 5;", 5, Asterisk{}, 5},
+      infix_test_case{"5 / 5;", 5, Slash{}, 5},
+      infix_test_case{"5 > 5;", 5, GT{}, 5},
+      infix_test_case{"5 < 5;", 5, LT{}, 5},
+      infix_test_case{"5 == 5;", 5, Eq{}, 5},
+      infix_test_case{"5 != 5;", 5, NotEq{}, 5},
+  };
+  for (size_t i = 0; i < 2; i++) {
+    Parser p{parse_input(tests[i].input)};
+    auto program{p.parse_program()};
+    program = parser_pre_checks(p, std::move(program), 1);
+    if (!program) {
+      return false;
+    }
+    ExpressionStatement *statement;
+    if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
+      return false;
+    }
+
+    bool result;
+    auto expr{assert_expr_type_statement<InfixExpression>(statement, result)};
+    if (!result) {
+      return false;
+    }
+    if (expr->oper != tests[i].oper) {
+      std::cout << "Wrong operator. want: " << Token{tests[i].oper}.to_string()
+                << " got: " << Token{expr->oper}.to_string() << std::endl;
+      return false;
+    }
+
+    auto left_expr{
+        assert_expr_type<IntegerLiteral>(std::move(expr->left), result)};
+    if (!result) {
+      return false;
+    }
+    if (!assert_value(left_expr, tests[i].right)) {
+      return false;
+    }
+    auto right_expr{
+        assert_expr_type<IntegerLiteral>(std::move(expr->right), result)};
+    if (!result) {
+      return false;
+    }
+    if (!assert_value(right_expr, tests[i].right)) {
+      return false;
+    }
+  }
+  std::cout << "PASS" << std::endl;
+  return true;
+}
