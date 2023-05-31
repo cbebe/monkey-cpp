@@ -2,12 +2,14 @@ OBJ := \
 	obj/token.o \
 	obj/lexer.o \
 	obj/ast.o \
-	obj/parser.o
+	obj/parser.o \
+	obj/expressions.o \
+	obj/statements.o \
 
 TEST_OBJ := \
 	test_obj/test_next_token.o \
 	test_obj/test_statements.o \
-	test_obj/test_expressions.o
+	test_obj/test_expressions.o \
 
 CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 
@@ -28,8 +30,14 @@ monke_repl: $(OBJ) repl.o
 obj/%.o: src/%.cpp src/%.hpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
+obj/%.o: src/parser/%.cpp src/parser.hpp | obj
+	g++ -c -o $@ $(CPPFLAGS) $<
+
 test_obj/%.o: tests/%.cpp tests/tests.hpp | test_obj
 	g++ -c -o $@ $(CPPFLAGS) $<
+
+time: clean
+	time $(MAKE) -j all
 
 obj:
 	mkdir -p $@
@@ -53,4 +61,4 @@ clean-lsp:
 clean:
 	rm -rf *.o obj test_obj monke_repl monke_test
 
-.PHONY: clean clean-lsp test lsp run all
+.PHONY: clean clean-lsp test lsp run all time

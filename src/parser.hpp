@@ -1,10 +1,6 @@
 #pragma once
 #include "ast.hpp"
 #include "lexer.hpp"
-#include <functional>
-#include <memory>
-#include <optional>
-#include <string>
 #include <unordered_map>
 
 namespace std {
@@ -67,3 +63,19 @@ private:
       prefix_parse_fns{};
   std::unordered_map<token_types::TokenVariant, InfixParseFn> infix_parse_fns{};
 };
+
+template <typename TokenType> void Parser::peek_error(Token t) {
+  auto message = "expected next token to be " + type_string<TokenType>() +
+                 ". got " + t.to_string();
+  errors.push_back(message);
+}
+
+template <typename TokenType> bool Parser::expect_peek() {
+  if (peek_token.is_type<TokenType>()) {
+    next_token();
+    return true;
+  } else {
+    peek_error<TokenType>(peek_token);
+    return false;
+  }
+}

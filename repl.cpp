@@ -45,7 +45,7 @@ void parse() {
 
 int main(int argc, const char **argv) {
   srand(time(0));
-  Command com;
+  Command com{};
   if (argc > 1) {
     std::string command{argv[1]};
     if (command == "lex") {
