@@ -1,11 +1,13 @@
 #include "../src/parser.hpp"
 #include "tests.hpp"
+#include <any>
 #include <iostream>
 #include <vector>
 
 template <class Expr, typename T> bool assert_value(Expr &expr, T test_value) {
   if (expr->value != test_value) {
-    std::cout << "Failed test: not " << test_value << std::endl;
+    std::cout << "Failed test - want: " << test_value
+              << ". got: " << expr->value << std::endl;
     return false;
   }
   return true;
@@ -106,42 +108,70 @@ bool test_integer_literal_expression() {
   return true;
 }
 
-bool test_prefix_expression() {
-  struct prefix_test_case {
-    std::string input;
-    token_types::TokenVariant oper;
-    int value;
-  };
-  auto tests = std::vector{prefix_test_case{"!5;", token_types::Bang{}, 5},
-                           prefix_test_case{"-15;", token_types::Minus{}, 15}};
-  for (size_t i = 0; i < 2; i++) {
-    Parser p{parse_input(tests[i].input)};
-    auto program{p.parse_program()};
-    program = parser_pre_checks(p, std::move(program), 1);
-    if (!program) {
-      return false;
-    }
-    ExpressionStatement *statement;
-    if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
-      return false;
-    }
+template <typename T> struct prefix_test_case {
+  std::string input;
+  token_types::TokenVariant oper;
+  T value;
+};
 
-    bool result;
-    auto expr{assert_expr_type_statement<PrefixExpression>(statement, result)};
-    if (!result) {
-      return false;
+template <typename T, class C>
+bool do_prefix_test_case(prefix_test_case<T> test) {
+  Parser p{parse_input(test.input)};
+  auto program{p.parse_program()};
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return false;
+  }
+  ExpressionStatement *statement;
+  if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
+    return false;
+  }
+
+  bool result;
+  auto expr{assert_expr_type_statement<PrefixExpression>(statement, result)};
+  if (!result) {
+    return false;
+  }
+  if (expr->oper != test.oper) {
+    std::cout << "Wrong operator. want: " << type_to_string(test.oper)
+              << " got: " << type_to_string(expr->oper) << std::endl;
+    return false;
+  }
+  auto right_expr{assert_expr_type<C>(std::move(expr->right), result)};
+  if (!result) {
+    return false;
+  }
+  if (!assert_value(right_expr, test.value)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool test_prefix_expression() {
+  auto tests = std::vector<std::any>{
+      prefix_test_case<int>{"!5;", token_types::Bang{}, 5},
+      prefix_test_case<int>{"-15;", token_types::Minus{}, 15},
+      prefix_test_case<bool>{"!true;", token_types::Bang{}, true},
+      prefix_test_case<bool>{"!false;", token_types::Bang{}, false},
+  };
+
+  for (size_t i = 0; i < tests.size(); i++) {
+    auto test{tests[i]};
+    auto int_test{std::any_cast<prefix_test_case<int>>(&test)};
+    bool ret_val{true};
+    if (!int_test) {
+      auto bool_test{std::any_cast<prefix_test_case<bool>>(&test)};
+      if (!do_prefix_test_case<bool, BooleanLiteral>(*bool_test)) {
+        ret_val = false;
+      }
+    } else {
+      if (!do_prefix_test_case<int, IntegerLiteral>(*int_test)) {
+        ret_val = false;
+      }
     }
-    if (expr->oper != tests[i].oper) {
-      std::cout << "Wrong operator. want: " << type_to_string(tests[i].oper)
-                << " got: " << type_to_string(expr->oper) << std::endl;
-      return false;
-    }
-    auto right_expr{
-        assert_expr_type<IntegerLiteral>(std::move(expr->right), result)};
-    if (!result) {
-      return false;
-    }
-    if (!assert_value(right_expr, tests[i].value)) {
+    if (!ret_val) {
+      std::cout << "Failed test case " << i << std::endl;
       return false;
     }
   }
@@ -149,64 +179,90 @@ bool test_prefix_expression() {
   return true;
 }
 
+template <typename T> struct infix_test_case {
+  std::string input;
+  T left;
+  token_types::TokenVariant oper;
+  T right;
+};
+
+template <typename T, class C>
+bool do_infix_test_case(infix_test_case<T> test) {
+  Parser p{parse_input(test.input)};
+  auto program{p.parse_program()};
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return false;
+  }
+  ExpressionStatement *statement;
+  if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
+    return false;
+  }
+
+  bool result;
+  auto expr{assert_expr_type_statement<InfixExpression>(statement, result)};
+  if (!result) {
+    return false;
+  }
+  if (expr->oper != test.oper) {
+    std::cout << "Wrong operator. want: " << type_to_string(test.oper)
+              << " got: " << type_to_string(expr->oper) << std::endl;
+    return false;
+  }
+
+  auto left_expr{assert_expr_type<C>(std::move(expr->left), result)};
+  if (!result) {
+    return false;
+  }
+  if (!assert_value(left_expr, test.left)) {
+    return false;
+  }
+  auto right_expr{assert_expr_type<C>(std::move(expr->right), result)};
+  if (!result) {
+    return false;
+  }
+  if (!assert_value(right_expr, test.right)) {
+    return false;
+  }
+
+  return true;
+}
+
 bool test_infix_expression() {
-  struct infix_test_case {
-    std::string input;
-    int left;
-    token_types::TokenVariant oper;
-    int right;
-  };
   using namespace token_types;
-  auto tests = std::vector{
-      infix_test_case{"5 + 5;", 5, Plus{}, 5},
-      infix_test_case{"5 - 5;", 5, Minus{}, 5},
-      infix_test_case{"5 * 5;", 5, Asterisk{}, 5},
-      infix_test_case{"5 / 5;", 5, Slash{}, 5},
-      infix_test_case{"5 > 5;", 5, GT{}, 5},
-      infix_test_case{"5 < 5;", 5, LT{}, 5},
-      infix_test_case{"5 == 5;", 5, Eq{}, 5},
-      infix_test_case{"5 != 5;", 5, NotEq{}, 5},
+  auto tests = std::vector<std::any>{
+      infix_test_case<int>{"3 + 10;", 3, Plus{}, 10},
+      infix_test_case<int>{"5 - 5;", 5, Minus{}, 5},
+      infix_test_case<int>{"5 * 5;", 5, Asterisk{}, 5},
+      infix_test_case<int>{"5 / 5;", 5, Slash{}, 5},
+      infix_test_case<int>{"5 > 5;", 5, GT{}, 5},
+      infix_test_case<int>{"5 < 5;", 5, LT{}, 5},
+      infix_test_case<int>{"5 == 5;", 5, Eq{}, 5},
+      infix_test_case<int>{"5 != 5;", 5, NotEq{}, 5},
+      infix_test_case<bool>{"true == true", true, Eq{}, true},
+      infix_test_case<bool>{"false == false", false, Eq{}, false},
+      infix_test_case<bool>{"true != false", true, NotEq{}, false},
   };
-  for (auto test : tests) {
-    Parser p{parse_input(test.input)};
-    auto program{p.parse_program()};
-    program = parser_pre_checks(p, std::move(program), 1);
-    if (!program) {
-      return false;
+  for (size_t i = 0; i < tests.size(); i++) {
+    auto test{tests[i]};
+    auto int_test{std::any_cast<infix_test_case<int>>(&test)};
+    bool ret_val{true};
+    if (!int_test) {
+      auto bool_test{std::any_cast<infix_test_case<bool>>(&test)};
+      if (!do_infix_test_case<bool, BooleanLiteral>(*bool_test)) {
+        ret_val = false;
+      }
+    } else {
+      if (!do_infix_test_case<int, IntegerLiteral>(*int_test)) {
+        ret_val = false;
+      }
     }
-    ExpressionStatement *statement;
-    if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
-      return false;
-    }
-
-    bool result;
-    auto expr{assert_expr_type_statement<InfixExpression>(statement, result)};
-    if (!result) {
-      return false;
-    }
-    if (expr->oper != test.oper) {
-      std::cout << "Wrong operator. want: " << type_to_string(test.oper)
-                << " got: " << type_to_string(expr->oper) << std::endl;
-      return false;
-    }
-
-    auto left_expr{
-        assert_expr_type<IntegerLiteral>(std::move(expr->left), result)};
-    if (!result) {
-      return false;
-    }
-    if (!assert_value(left_expr, test.right)) {
-      return false;
-    }
-    auto right_expr{
-        assert_expr_type<IntegerLiteral>(std::move(expr->right), result)};
-    if (!result) {
-      return false;
-    }
-    if (!assert_value(right_expr, test.right)) {
+    if (!ret_val) {
+      std::cout << "Failed test case " << i << std::endl;
       return false;
     }
   }
+
   std::cout << "PASS" << std::endl;
   return true;
 }
