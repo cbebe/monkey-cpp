@@ -3,4 +3,7 @@ monke_*
 
 *.o
 
+obj
+test_obj
+
 compile_commands.json
