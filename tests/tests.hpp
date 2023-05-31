@@ -6,6 +6,8 @@ bool first_next_token_test();
 bool second_next_token_test();
 bool third_next_token_test();
 
+std::unique_ptr<Program>
+check_errors(Parser &p, std::unique_ptr<Program> program, bool &pass);
 std::unique_ptr<Program> parser_pre_checks(Parser &p,
                                            std::unique_ptr<Program> program,
                                            size_t num_statements);

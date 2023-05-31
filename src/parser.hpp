@@ -53,6 +53,7 @@ private:
   Expression *parse_identifier();
   Expression *parse_integer_literal();
   Expression *parse_boolean_literal();
+  Expression *parse_grouped_expression();
   Expression *parse_prefix_expression();
   Expression *parse_infix_expression(Expression *);
 

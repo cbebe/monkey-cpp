@@ -49,6 +49,15 @@ Expression *Parser::parse_boolean_literal() {
   return new BooleanLiteral{cur_token.is_type<True>()};
 }
 
+Expression *Parser::parse_grouped_expression() {
+  next_token();
+  auto expr{parse_expression(LOWEST)};
+  if (!expect_peek<RParen>()) {
+    return nullptr;
+  }
+  return expr;
+}
+
 Expression *Parser::parse_prefix_expression() {
   auto oper{cur_token.value};
   next_token();

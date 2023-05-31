@@ -2,17 +2,26 @@
 #include "tests.hpp"
 #include <iostream>
 
-std::unique_ptr<Program> parser_pre_checks(Parser &p,
-                                           std::unique_ptr<Program> program,
-                                           size_t num_statements) {
+std::unique_ptr<Program>
+check_errors(Parser &p, std::unique_ptr<Program> program, bool &pass) {
   if (p.errors.size() > 0) {
     std::cout << "parser error:" << std::endl;
     for (auto &e : p.errors) {
       std::cout << e << std::endl;
     }
-
-    return nullptr;
+    pass = false;
   };
+  return program;
+}
+
+std::unique_ptr<Program> parser_pre_checks(Parser &p,
+                                           std::unique_ptr<Program> program,
+                                           size_t num_statements) {
+  bool pass{true};
+  program = check_errors(p, std::move(program), pass);
+  if (!pass) {
+    return nullptr;
+  }
   if (!program) {
     std::cout << "Failed test: program is null" << std::endl;
     return nullptr;

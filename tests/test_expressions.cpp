@@ -338,12 +338,37 @@ bool test_operator_precedence() {
           "3 + 4 * 5 == 3 * 1 + 4 * 5",
           "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
       },
+      test_case{
+          "1 + (2 + 3) + 4",
+          "((1 + (2 + 3)) + 4)",
+      },
+      test_case{
+          "(5 + 5) * 2",
+          "((5 + 5) * 2)",
+      },
+      test_case{
+          "2 / (5 + 5)",
+          "(2 / (5 + 5))",
+      },
+      test_case{
+          "-(5 + 5)",
+          "(-(5 + 5))",
+      },
+      test_case{
+          "!(true == true)",
+          "(!(true == true))",
+      },
   }};
 
   for (size_t i = 0; i < tests.size(); i++) {
     auto t{tests[i]};
     Parser p{parse_input(t.input)};
     auto program{p.parse_program()};
+    bool pass{true};
+    program = check_errors(p, std::move(program), pass);
+    if (!pass) {
+      return false;
+    }
     if (!program) {
       std::cout << i << std::endl;
       return false;
