@@ -106,8 +106,8 @@ bool test_prefix_expression() {
       return false;
     }
     if (expr->oper != tests[i].oper) {
-      std::cout << "Wrong operator. want: " << Token{tests[i].oper}.to_string()
-                << " got: " << Token{expr->oper}.to_string() << std::endl;
+      std::cout << "Wrong operator. want: " << type_to_string(tests[i].oper)
+                << " got: " << type_to_string(expr->oper) << std::endl;
       return false;
     }
     auto right_expr{
@@ -141,8 +141,8 @@ bool test_infix_expression() {
       infix_test_case{"5 == 5;", 5, Eq{}, 5},
       infix_test_case{"5 != 5;", 5, NotEq{}, 5},
   };
-  for (size_t i = 0; i < 2; i++) {
-    Parser p{parse_input(tests[i].input)};
+  for (auto test : tests) {
+    Parser p{parse_input(test.input)};
     auto program{p.parse_program()};
     program = parser_pre_checks(p, std::move(program), 1);
     if (!program) {
@@ -158,9 +158,9 @@ bool test_infix_expression() {
     if (!result) {
       return false;
     }
-    if (expr->oper != tests[i].oper) {
-      std::cout << "Wrong operator. want: " << Token{tests[i].oper}.to_string()
-                << " got: " << Token{expr->oper}.to_string() << std::endl;
+    if (expr->oper != test.oper) {
+      std::cout << "Wrong operator. want: " << type_to_string(test.oper)
+                << " got: " << type_to_string(expr->oper) << std::endl;
       return false;
     }
 
@@ -169,7 +169,7 @@ bool test_infix_expression() {
     if (!result) {
       return false;
     }
-    if (!assert_value(left_expr, tests[i].right)) {
+    if (!assert_value(left_expr, test.right)) {
       return false;
     }
     auto right_expr{
@@ -177,7 +177,83 @@ bool test_infix_expression() {
     if (!result) {
       return false;
     }
-    if (!assert_value(right_expr, tests[i].right)) {
+    if (!assert_value(right_expr, test.right)) {
+      return false;
+    }
+  }
+  std::cout << "PASS" << std::endl;
+  return true;
+}
+
+bool test_operator_precedence() {
+  struct test_case {
+    std::string input;
+    std::string expected;
+  };
+
+  auto tests{std::vector{
+      test_case{
+          "-a * b",
+          "((-a) * b)",
+      },
+      test_case{
+          "!-a",
+          "(!(-a))",
+      },
+      test_case{
+          "a + b + c",
+          "((a + b) + c)",
+      },
+      test_case{
+          "a + b - c",
+          "((a + b) - c)",
+      },
+      test_case{
+          "a * b * c",
+          "((a * b) * c)",
+      },
+      test_case{
+          "a * b / c",
+          "((a * b) / c)",
+      },
+      test_case{
+          "a + b / c",
+          "(a + (b / c))",
+      },
+      test_case{
+          "a + b * c + d / e - f",
+          "(((a + (b * c)) + (d / e)) - f)",
+      },
+      test_case{
+          "3 + 4; -5 * 5",
+          "(3 + 4)((-5) * 5)",
+      },
+      test_case{
+          "5 > 4 == 3 < 4",
+          "((5 > 4) == (3 < 4))",
+      },
+      test_case{
+          "5 < 4 != 3 > 4",
+          "((5 < 4) != (3 > 4))",
+      },
+      test_case{
+          "3 + 4 * 5 == 3 * 1 + 4 * 5",
+          "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+      },
+  }};
+
+  for (size_t i = 0; i < tests.size(); i++) {
+    auto t{tests[i]};
+    Parser p{parse_input(t.input)};
+    auto program{p.parse_program()};
+    if (!program) {
+      std::cout << i << std::endl;
+      return false;
+    }
+    auto prog_str{program->to_string()};
+    if (prog_str != t.expected) {
+      std::cout << "Failed test " << i << " - want: '" << t.expected
+                << "' got: '" << prog_str << "'" << std::endl;
       return false;
     }
   }

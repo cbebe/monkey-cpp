@@ -14,7 +14,7 @@ std::string Program::token_literal() const {
 std::string Program::to_string() const {
   std::stringstream ss;
   for (const auto &s : statements) {
-    ss << s->to_string() << std::endl;
+    ss << s->to_string();
   }
   return ss.str();
 }
@@ -46,7 +46,7 @@ PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
 std::string PrefixExpression::token_literal() const { return "PREFIX"; }
 std::string PrefixExpression::to_string() const {
   auto value{right ? right->to_string() : "<NIL>"};
-  return "(" + Token{oper}.to_string() + value + ")";
+  return "(" + Token{oper}.literal() + value + ")";
 }
 // }}}
 
@@ -59,7 +59,7 @@ std::string InfixExpression::token_literal() const { return "INFIX"; }
 std::string InfixExpression::to_string() const {
   auto left_val{left ? left->to_string() : "<NIL>"};
   auto right_val{right ? right->to_string() : "<NIL>"};
-  return "(" + left_val + " " + Token{oper}.to_string() + " " + right_val + ")";
+  return "(" + left_val + " " + Token{oper}.literal() + " " + right_val + ")";
 }
 // }}}
 
@@ -69,7 +69,7 @@ LetStatement::LetStatement(Identifier i, Expression *v)
 std::string LetStatement::token_literal() const { return "LET"; }
 std::string LetStatement::to_string() const {
   auto expr = value ? value->to_string() : "<NIL>";
-  return token_literal() + " " + identifier.to_string() + " = " + expr + ";";
+  return token_literal() + " " + identifier.to_string() + " = " + expr;
 }
 // }}}
 
@@ -78,7 +78,7 @@ ReturnStatement::ReturnStatement(Expression *v) : value(v) {}
 std::string ReturnStatement::token_literal() const { return "RETURN"; }
 std::string ReturnStatement::to_string() const {
   auto expr = value ? value->to_string() : "<NIL>";
-  return token_literal() + " " + expr + ";";
+  return token_literal() + " " + expr;
 }
 // }}}
 
@@ -86,8 +86,7 @@ std::string ReturnStatement::to_string() const {
 ExpressionStatement::ExpressionStatement(Expression *v) : value(v) {}
 std::string ExpressionStatement::token_literal() const { return "EXPRESSION"; }
 std::string ExpressionStatement::to_string() const {
-  auto expr = value ? value->to_string() : "<NIL>";
-  return expr + ";";
+  return value ? value->to_string() : "<NIL>";
 }
 // }}}
 

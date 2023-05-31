@@ -18,6 +18,7 @@ int main() {
   TEST(test_integer_literal_expression);
   TEST(test_prefix_expression);
   TEST(test_infix_expression);
+  TEST(test_operator_precedence);
 
   return 0;
 }

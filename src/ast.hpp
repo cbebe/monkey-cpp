@@ -55,8 +55,8 @@ public:
   InfixExpression(Expression *, token_types::TokenVariant, Expression *);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
-  token_types::TokenVariant oper;
   std::unique_ptr<Expression> left;
+  token_types::TokenVariant oper;
   std::unique_ptr<Expression> right;
 };
 
