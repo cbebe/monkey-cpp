@@ -39,6 +39,17 @@ std::string IntegerLiteral::token_literal() const { return "INT"; }
 std::string IntegerLiteral::to_string() const { return std::to_string(value); }
 // }}}
 
+// {{{ PrefixExpression
+PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
+                                   Expression *e)
+    : oper(prefix), right(e) {}
+std::string PrefixExpression::token_literal() const { return "PREFIX"; }
+std::string PrefixExpression::to_string() const {
+  auto value{right ? right->to_string() : "<NIL>"};
+  return "(" + Token{oper}.to_string() + value + ")";
+}
+// }}}
+
 // {{{ LetStatement
 LetStatement::LetStatement(Identifier i, Expression *v)
     : identifier(i), value(v) {}

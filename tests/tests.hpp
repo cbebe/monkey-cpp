@@ -11,14 +11,16 @@ std::unique_ptr<Program> parser_pre_checks(Parser &p,
                                            size_t num_statements);
 Parser parse_input(std::string input);
 
-#define ASSERT_STATEMENT_TYPE(StatementType, to_convert, var)                  \
-  do {                                                                         \
-    var = dynamic_cast<StatementType *>(to_convert);                           \
-    if (!var) {                                                                \
-      std::cout << "Failed test: not a " #StatementType << std::endl;          \
-      return false;                                                            \
-    }                                                                          \
-  } while (0)
+template <class StatementType>
+bool assert_type(Statement *to_convert, StatementType *&var) {
+  var = dynamic_cast<StatementType *>(to_convert);
+  if (!var) {
+    std::cout << "Failed test: not a " << typeid(StatementType).name()
+              << std::endl;
+    return false;
+  }
+  return true;
+}
 
 bool test_let_statements();
 bool test_return_statements();
@@ -36,3 +38,4 @@ dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) {
 
 bool test_identifier_expression();
 bool test_integer_literal_expression();
+bool test_prefix_expression();

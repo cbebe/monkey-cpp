@@ -45,7 +45,9 @@ let foobar = 838383;\
 
   for (std::size_t i = 0; i < program->statements.size(); i++) {
     LetStatement *statement;
-    ASSERT_STATEMENT_TYPE(LetStatement, program->statements[i], statement);
+    if (!assert_type<LetStatement>(program->statements[i], statement)) {
+      return false;
+    }
     auto ident{statement->identifier.value};
     if (ident != tests[i]) {
       std::cout << "Failed test: got identifier: " << ident
@@ -73,7 +75,9 @@ return 993322;\
 
   for (std::size_t i = 0; i < program->statements.size(); i++) {
     ReturnStatement *statement;
-    ASSERT_STATEMENT_TYPE(ReturnStatement, program->statements[i], statement);
+    if (!assert_type<ReturnStatement>(program->statements[i], statement)) {
+      return false;
+    }
   }
 
   std::cout << "PASS" << std::endl;

@@ -1,4 +1,5 @@
 #pragma once
+#include "token.hpp"
 #include <memory>
 #include <vector>
 
@@ -38,6 +39,15 @@ public:
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   int value;
+};
+
+class PrefixExpression : public Expression {
+public:
+  PrefixExpression(token_types::TokenVariant, Expression *);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  token_types::TokenVariant oper;
+  std::unique_ptr<Expression> right;
 };
 
 class LetStatement : public Statement {
