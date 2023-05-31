@@ -67,8 +67,8 @@ Token Lexer::next_token() {
   case '*': tok = new_token(Asterisk{}); break;
   case '<': tok = new_token(LT{}); break;
   case '>': tok = new_token(GT{}); break;
-  case '{': tok = new_token(LBrace{}); break;
-  case '}': tok = new_token(RBrace{}); break;
+  case '{': tok = new_token(LSquirly{}); break;
+  case '}': tok = new_token(RSquirly{}); break;
   case   0: tok = new_token(Eof{}); break;
   // clang-format on
   default:

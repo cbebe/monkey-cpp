@@ -71,6 +71,18 @@ std::string InfixExpression::to_string() const {
 }
 // }}}
 
+// {{{ IfExpression
+IfExpression::IfExpression(Expression *condition, BlockStatement *consequence,
+                           BlockStatement *alternative)
+    : condition(condition), consequence(consequence), alternative(alternative) {
+}
+std::string IfExpression::token_literal() const { return "if"; }
+std::string IfExpression::to_string() const {
+  return "if" + condition->to_string() + " " + consequence->to_string() +
+         (alternative ? ("else " + alternative->to_string()) : "");
+}
+// }}}
+
 // {{{ LetStatement
 LetStatement::LetStatement(Identifier i, Expression *v)
     : identifier(i), value(v) {}
@@ -81,7 +93,7 @@ std::string LetStatement::to_string() const {
 }
 // }}}
 
-// {{{ Return Statement
+// {{{ ReturnStatement
 ReturnStatement::ReturnStatement(Expression *v) : value(v) {}
 std::string ReturnStatement::token_literal() const { return "RETURN"; }
 std::string ReturnStatement::to_string() const {
@@ -90,11 +102,22 @@ std::string ReturnStatement::to_string() const {
 }
 // }}}
 
-// {{{ Expression Statement
+// {{{ ExpressionStatement
 ExpressionStatement::ExpressionStatement(Expression *v) : value(v) {}
 std::string ExpressionStatement::token_literal() const { return "EXPRESSION"; }
 std::string ExpressionStatement::to_string() const {
   return value ? value->to_string() : "<NIL>";
+}
+// }}}
+
+// {{{ BlockStatement
+std::string BlockStatement::token_literal() const { return "BLOCK"; }
+std::string BlockStatement::to_string() const {
+  std::stringstream ss;
+  for (auto &s : statements) {
+    ss << s->to_string();
+  }
+  return ss.str();
 }
 // }}}
 

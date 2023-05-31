@@ -38,6 +38,7 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_prefix(False{}, &Parser::parse_boolean_literal);
   register_prefix(Bang{}, &Parser::parse_prefix_expression);
   register_prefix(Minus{}, &Parser::parse_prefix_expression);
+  register_prefix(If{}, &Parser::parse_if_expression);
 
   register_infix(Plus{}, &Parser::parse_infix_expression);
   register_infix(Minus{}, &Parser::parse_infix_expression);

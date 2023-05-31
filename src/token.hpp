@@ -41,8 +41,8 @@ TOKEN_TYPE(Semicolon);
 
 TOKEN_TYPE(LParen);
 TOKEN_TYPE(RParen);
-TOKEN_TYPE(LBrace);
-TOKEN_TYPE(RBrace);
+TOKEN_TYPE(LSquirly);
+TOKEN_TYPE(RSquirly);
 
 // Keywords
 TOKEN_TYPE(Function);
@@ -56,7 +56,8 @@ TOKEN_TYPE(Return);
 using TokenVariant =
     std::variant<Illegal, Eof, Ident, Int, Assign, Plus, Minus, Bang, Asterisk,
                  Slash, LT, GT, Eq, NotEq, Comma, Semicolon, LParen, RParen,
-                 LBrace, RBrace, Function, Let, True, False, If, Else, Return>;
+                 LSquirly, RSquirly, Function, Let, True, False, If, Else,
+                 Return>;
 } // namespace token_types
 
 std::string type_to_string(token_types::TokenVariant);
@@ -117,9 +118,9 @@ template <typename T> std::string literal_string() {
     ret_val = "(";
   else if constexpr (std::is_same_v<T, RParen>)
     ret_val = ")";
-  else if constexpr (std::is_same_v<T, LBrace>)
+  else if constexpr (std::is_same_v<T, LSquirly>)
     ret_val = "{";
-  else if constexpr (std::is_same_v<T, RBrace>)
+  else if constexpr (std::is_same_v<T, RSquirly>)
     ret_val = "}";
   else if constexpr (std::is_same_v<T, Function>)
     ret_val = "fn";
@@ -180,10 +181,10 @@ template <typename T> std::string type_string() {
     ret_val = "LPAREN";
   else if constexpr (std::is_same_v<T, RParen>)
     ret_val = "RPAREN";
-  else if constexpr (std::is_same_v<T, LBrace>)
-    ret_val = "LBRACE";
-  else if constexpr (std::is_same_v<T, RBrace>)
-    ret_val = "RBRACE";
+  else if constexpr (std::is_same_v<T, LSquirly>)
+    ret_val = "LSQUIRLY";
+  else if constexpr (std::is_same_v<T, RSquirly>)
+    ret_val = "RSQUIRLY";
   else if constexpr (std::is_same_v<T, Function>)
     ret_val = "FUNCTION";
   else if constexpr (std::is_same_v<T, Let>)

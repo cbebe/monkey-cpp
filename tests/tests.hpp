@@ -44,3 +44,6 @@ bool test_boolean_literal_expression();
 bool test_prefix_expression();
 bool test_infix_expression();
 bool test_operator_precedence();
+
+bool test_if_expression();
+bool test_if_else_expression();

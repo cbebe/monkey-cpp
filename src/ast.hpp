@@ -25,6 +25,7 @@ public:
   ~Program();
 };
 
+// {{{ Expresssions
 class Identifier : public Expression {
 public:
   Identifier(std::string);
@@ -68,6 +69,9 @@ public:
   std::unique_ptr<Expression> right;
 };
 
+// }}}
+
+// {{{ Statements
 class LetStatement : public Statement {
 public:
   LetStatement(Identifier, Expression *);
@@ -92,5 +96,25 @@ public:
   virtual std::string to_string() const override;
   std::unique_ptr<Expression> value;
 };
+
+class BlockStatement : public Statement {
+public:
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::vector<Statement *> statements{};
+};
+// }}}
+
+// {{{ IfExpression (needs BlockStatement definition)
+class IfExpression : public Expression {
+public:
+  IfExpression(Expression *, BlockStatement *, BlockStatement *);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::unique_ptr<Expression> condition;
+  std::unique_ptr<BlockStatement> consequence;
+  std::unique_ptr<BlockStatement> alternative;
+};
+// }}}
 
 // vim:foldmethod=marker

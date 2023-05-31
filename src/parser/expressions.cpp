@@ -49,6 +49,30 @@ Expression *Parser::parse_boolean_literal() {
   return new BooleanLiteral{cur_token.is_type<True>()};
 }
 
+Expression *Parser::parse_if_expression() {
+  if (!expect_peek<LParen>()) {
+    return nullptr;
+  }
+  next_token();
+  auto condition{parse_expression(LOWEST)};
+  if (!expect_peek<RParen>()) {
+    return nullptr;
+  }
+  if (!expect_peek<LSquirly>()) {
+    return nullptr;
+  }
+  auto consequence{parse_block_statement()};
+  BlockStatement *alternative{};
+  if (peek_token.is_type<Else>()) {
+    next_token();
+    if (!expect_peek<LSquirly>()) {
+      return nullptr;
+    }
+    alternative = parse_block_statement();
+  }
+  return new IfExpression{condition, consequence, alternative};
+}
+
 Expression *Parser::parse_grouped_expression() {
   next_token();
   auto expr{parse_expression(LOWEST)};

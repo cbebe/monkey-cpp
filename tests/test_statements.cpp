@@ -65,7 +65,6 @@ let foobar = 838383;\
     }
   }
 
-  std::cout << "PASS" << std::endl;
   return true;
 }
 
@@ -89,6 +88,5 @@ return 993322;\
     }
   }
 
-  std::cout << "PASS" << std::endl;
   return true;
 }

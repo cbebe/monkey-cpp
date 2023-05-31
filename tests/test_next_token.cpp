@@ -12,15 +12,15 @@ bool test_next_token(std::vector<std::string> tests, std::string input) {
       return false;
     }
   }
-  std::cout << "PASS" << std::endl;
+
   return true;
 }
 
 bool first_next_token_test() {
   auto input{"=+(){},;"};
   std::vector<std::string> tests{
-      "ASSIGN", "PLUS",  "LPAREN",    "RPAREN", "LBRACE",
-      "RBRACE", "COMMA", "SEMICOLON", "EOF",
+      "ASSIGN",   "PLUS",  "LPAREN",    "RPAREN", "LSQUIRLY",
+      "RSQUIRLY", "COMMA", "SEMICOLON", "EOF",
   };
   return test_next_token(tests, input);
 }
@@ -39,8 +39,8 @@ let result = add(five, ten);\
       "LET",       "IDENT(five)", "ASSIGN",        "INT(5)",     "SEMICOLON",
       "LET",       "IDENT(ten)",  "ASSIGN",        "INT(10)",    "SEMICOLON",
       "LET",       "IDENT(add)",  "ASSIGN",        "FUNCTION",   "LPAREN",
-      "IDENT(x)",  "COMMA",       "IDENT(y)",      "RPAREN",     "LBRACE",
-      "IDENT(x)",  "PLUS",        "IDENT(y)",      "SEMICOLON",  "RBRACE",
+      "IDENT(x)",  "COMMA",       "IDENT(y)",      "RPAREN",     "LSQUIRLY",
+      "IDENT(x)",  "PLUS",        "IDENT(y)",      "SEMICOLON",  "RSQUIRLY",
       "SEMICOLON", "LET",         "IDENT(result)", "ASSIGN",     "IDENT(add)",
       "LPAREN",    "IDENT(five)", "COMMA",         "IDENT(ten)", "RPAREN",
       "SEMICOLON", "EOF",
@@ -62,12 +62,12 @@ if (5 < 10) {\
 10 != 9;\
 "};
   std::vector<std::string> tests{
-      "BANG",      "MINUS",   "SLASH",     "ASTERISK",  "INT(5)",  "SEMICOLON",
-      "INT(5)",    "LT",      "INT(10)",   "GT",        "INT(5)",  "SEMICOLON",
-      "IF",        "LPAREN",  "INT(5)",    "LT",        "INT(10)", "RPAREN",
-      "LBRACE",    "RETURN",  "TRUE",      "SEMICOLON", "RBRACE",  "ELSE",
-      "LBRACE",    "RETURN",  "FALSE",     "SEMICOLON", "RBRACE",  "INT(10)",
-      "EQ",        "INT(10)", "SEMICOLON", "INT(10)",   "NOT_EQ",  "INT(9)",
+      "BANG",      "MINUS",   "SLASH",     "ASTERISK",  "INT(5)",   "SEMICOLON",
+      "INT(5)",    "LT",      "INT(10)",   "GT",        "INT(5)",   "SEMICOLON",
+      "IF",        "LPAREN",  "INT(5)",    "LT",        "INT(10)",  "RPAREN",
+      "LSQUIRLY",  "RETURN",  "TRUE",      "SEMICOLON", "RSQUIRLY", "ELSE",
+      "LSQUIRLY",  "RETURN",  "FALSE",     "SEMICOLON", "RSQUIRLY", "INT(10)",
+      "EQ",        "INT(10)", "SEMICOLON", "INT(10)",   "NOT_EQ",   "INT(9)",
       "SEMICOLON", "EOF",
   };
   return test_next_token(tests, input);

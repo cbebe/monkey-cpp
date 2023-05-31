@@ -2,9 +2,9 @@ procs:
   nvim:
     cmd: [nvim, .]
   test:
-    cmd: [make, test]
+    cmd: [make, -j, test]
   repl:
-    cmd: [make]
+    cmd: [make, -j, repl]
     autostart: false
   clean:
     cmd: [make, clean]

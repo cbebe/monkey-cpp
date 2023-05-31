@@ -47,12 +47,14 @@ private:
   LetStatement *parse_let_statement();
   ReturnStatement *parse_return_statement();
   ExpressionStatement *parse_expression_statement();
+  BlockStatement *parse_block_statement();
 
   // Expressions
   Expression *parse_expression(Precedence);
   Expression *parse_identifier();
   Expression *parse_integer_literal();
   Expression *parse_boolean_literal();
+  Expression *parse_if_expression();
   Expression *parse_grouped_expression();
   Expression *parse_prefix_expression();
   Expression *parse_infix_expression(Expression *);

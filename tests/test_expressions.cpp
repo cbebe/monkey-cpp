@@ -14,8 +14,11 @@ template <class Expr, typename T> bool assert_value(Expr &expr, T test_value) {
 }
 
 template <typename To>
-std::unique_ptr<To, std::default_delete<Expression>>
-assert_expr_type(std::unique_ptr<Expression> test_expr, bool &result) {
+using ExprSubtype = std::unique_ptr<To, std::default_delete<Expression>>;
+
+template <typename To>
+ExprSubtype<To> assert_expr_type(std::unique_ptr<Expression> test_expr,
+                                 bool &result) {
   auto expr{dynamic_unique_cast<To>(std::move(test_expr))};
   if (!expr) {
     std::cout << "Failed test: not " << typeid(To).name() << std::endl;
@@ -26,9 +29,28 @@ assert_expr_type(std::unique_ptr<Expression> test_expr, bool &result) {
 }
 
 template <typename To>
-std::unique_ptr<To, std::default_delete<Expression>>
-assert_expr_type_statement(ExpressionStatement *statement, bool &result) {
+ExprSubtype<To> assert_expr_type_statement(ExpressionStatement *statement,
+                                           bool &result) {
   return assert_expr_type<To>(std::move(statement->value), result);
+}
+
+bool test_single_identifier_expression_statement(Statement *gen,
+                                                 std::string value) {
+  ExpressionStatement *statement;
+  if (!assert_type<ExpressionStatement>(gen, statement)) {
+    return false;
+  }
+  bool result;
+  auto expr{assert_expr_type_statement<Identifier>(statement, result)};
+  if (!result) {
+    return false;
+  }
+
+  if (!assert_value(expr, value)) {
+    return false;
+  }
+
+  return true;
 }
 
 bool test_identifier_expression() {
@@ -40,20 +62,8 @@ bool test_identifier_expression() {
     return false;
   }
 
-  ExpressionStatement *statement;
-  if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
-    return false;
-  }
-  bool result;
-  auto expr{assert_expr_type_statement<Identifier>(statement, result)};
-  if (!result) {
-    return false;
-  }
-
-  if (!assert_value(expr, "foobar")) {
-    return false;
-  }
-  return true;
+  return test_single_identifier_expression_statement(program->statements[0],
+                                                     "foobar");
 }
 
 bool test_boolean_literal_expression() {
@@ -78,7 +88,6 @@ bool test_boolean_literal_expression() {
     return false;
   }
 
-  std::cout << "PASS" << std::endl;
   return true;
 }
 
@@ -104,7 +113,6 @@ bool test_integer_literal_expression() {
     return false;
   }
 
-  std::cout << "PASS" << std::endl;
   return true;
 }
 
@@ -175,7 +183,6 @@ bool test_prefix_expression() {
       return false;
     }
   }
-  std::cout << "PASS" << std::endl;
   return true;
 }
 
@@ -185,6 +192,35 @@ template <typename T> struct infix_test_case {
   token_types::TokenVariant oper;
   T right;
 };
+
+template <typename T, class C>
+bool test_single_infix_expression(ExprSubtype<InfixExpression> expr, T left,
+                                  token_types::TokenVariant oper, T right) {
+
+  if (expr->oper != oper) {
+    std::cout << "Wrong operator. want: " << type_to_string(oper)
+              << " got: " << type_to_string(expr->oper) << std::endl;
+    return false;
+  }
+  bool result{true};
+
+  auto left_expr{assert_expr_type<C>(std::move(expr->left), result)};
+  if (!result) {
+    return false;
+  }
+  if (!assert_value(left_expr, left)) {
+    return false;
+  }
+  auto right_expr{assert_expr_type<C>(std::move(expr->right), result)};
+  if (!result) {
+    return false;
+  }
+  if (!assert_value(right_expr, right)) {
+    return false;
+  }
+
+  return true;
+}
 
 template <typename T, class C>
 bool do_infix_test_case(infix_test_case<T> test) {
@@ -204,28 +240,8 @@ bool do_infix_test_case(infix_test_case<T> test) {
   if (!result) {
     return false;
   }
-  if (expr->oper != test.oper) {
-    std::cout << "Wrong operator. want: " << type_to_string(test.oper)
-              << " got: " << type_to_string(expr->oper) << std::endl;
-    return false;
-  }
-
-  auto left_expr{assert_expr_type<C>(std::move(expr->left), result)};
-  if (!result) {
-    return false;
-  }
-  if (!assert_value(left_expr, test.left)) {
-    return false;
-  }
-  auto right_expr{assert_expr_type<C>(std::move(expr->right), result)};
-  if (!result) {
-    return false;
-  }
-  if (!assert_value(right_expr, test.right)) {
-    return false;
-  }
-
-  return true;
+  return test_single_infix_expression<T, C>(std::move(expr), test.left,
+                                            test.oper, test.right);
 }
 
 bool test_infix_expression() {
@@ -263,7 +279,6 @@ bool test_infix_expression() {
     }
   }
 
-  std::cout << "PASS" << std::endl;
   return true;
 }
 
@@ -380,6 +395,81 @@ bool test_operator_precedence() {
       return false;
     }
   }
-  std::cout << "PASS" << std::endl;
+
+  return true;
+}
+
+ExprSubtype<IfExpression> test_single_if_expression(std::string input) {
+  Parser p{parse_input(input)};
+  auto program{p.parse_program()};
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return nullptr;
+  }
+  ExpressionStatement *statement;
+  if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
+    return nullptr;
+  }
+  bool result{true};
+  auto expr{assert_expr_type_statement<IfExpression>(statement, result)};
+  if (!result) {
+    return nullptr;
+  }
+  auto infix_expr{
+      assert_expr_type<InfixExpression>(std::move(expr->condition), result)};
+  if (!result) {
+    return nullptr;
+  }
+  result = test_single_infix_expression<std::string, Identifier>(
+      std::move(infix_expr), "x", token_types::LT{}, "y");
+  if (!result) {
+    return nullptr;
+  }
+  size_t length{expr->consequence->statements.size()};
+  if (length != 1) {
+    std::cout << "Incorrect number of statements. got " << length << " want "
+              << 1 << std::endl;
+    return nullptr;
+  }
+  if (!test_single_identifier_expression_statement(
+          expr->consequence->statements[0], "x")) {
+    return nullptr;
+  }
+
+  return expr;
+}
+
+bool test_if_expression() {
+  auto expr{test_single_if_expression("if (x < y) { x }")};
+  if (!expr) {
+    return false;
+  }
+  if (expr->alternative) {
+    std::cout << "Alternative statements was not null" << std::endl;
+    return false;
+  }
+  return true;
+}
+
+bool test_if_else_expression() {
+  auto expr{test_single_if_expression("if (x < y) { x } else { y }")};
+  if (!expr) {
+    return false;
+  }
+  if (!expr->alternative) {
+    std::cout << "Alternative statements was null" << std::endl;
+    return false;
+  }
+  size_t length{expr->alternative->statements.size()};
+  if (length != 1) {
+    std::cout << "Incorrect number of statements. got " << length << " want "
+              << 1 << std::endl;
+    return false;
+  }
+  if (!test_single_identifier_expression_statement(
+          expr->alternative->statements[0], "y")) {
+    return false;
+  }
+
   return true;
 }
