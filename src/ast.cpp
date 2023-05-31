@@ -39,6 +39,14 @@ std::string IntegerLiteral::token_literal() const { return "INT"; }
 std::string IntegerLiteral::to_string() const { return std::to_string(value); }
 // }}}
 
+// {{{ BooleanLiteral
+BooleanLiteral::BooleanLiteral(bool v) : value(v) {}
+std::string BooleanLiteral::token_literal() const { return "BOOL"; }
+std::string BooleanLiteral::to_string() const {
+  return value ? "true" : "false";
+}
+// }}}
+
 // {{{ PrefixExpression
 PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
                                    Expression *e)

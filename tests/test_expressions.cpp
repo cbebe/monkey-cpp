@@ -54,6 +54,32 @@ bool test_identifier_expression() {
   return true;
 }
 
+bool test_boolean_literal_expression() {
+  Parser p{parse_input("true;")};
+  auto program{p.parse_program()};
+
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return false;
+  }
+
+  ExpressionStatement *statement;
+  if (!assert_type<ExpressionStatement>(program->statements[0], statement)) {
+    return false;
+  }
+  bool result;
+  auto expr{assert_expr_type_statement<BooleanLiteral>(statement, result)};
+  if (!result) {
+    return false;
+  }
+  if (!assert_value(expr, true)) {
+    return false;
+  }
+
+  std::cout << "PASS" << std::endl;
+  return true;
+}
+
 bool test_integer_literal_expression() {
   Parser p{parse_input("5;")};
   auto program{p.parse_program()};
@@ -192,6 +218,22 @@ bool test_operator_precedence() {
   };
 
   auto tests{std::vector{
+      test_case{
+          "true",
+          "true",
+      },
+      test_case{
+          "false",
+          "false",
+      },
+      test_case{
+          "3 > 5 == false",
+          "((3 > 5) == false)",
+      },
+      test_case{
+          "3 < 5 == true",
+          "((3 < 5) == true)",
+      },
       test_case{
           "-a * b",
           "((-a) * b)",

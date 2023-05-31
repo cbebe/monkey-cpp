@@ -16,6 +16,7 @@ int main() {
   TEST(test_return_statements);
   TEST(test_identifier_expression);
   TEST(test_integer_literal_expression);
+  TEST(test_boolean_literal_expression);
   TEST(test_prefix_expression);
   TEST(test_infix_expression);
   TEST(test_operator_precedence);

@@ -45,6 +45,10 @@ Expression *Parser::parse_integer_literal() {
   return new IntegerLiteral{std::get<Int>(cur_token.value).value};
 }
 
+Expression *Parser::parse_boolean_literal() {
+  return new BooleanLiteral{cur_token.is_type<True>()};
+}
+
 Expression *Parser::parse_prefix_expression() {
   auto oper{cur_token.value};
   next_token();

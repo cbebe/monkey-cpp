@@ -33,6 +33,14 @@ public:
   std::string value;
 };
 
+class BooleanLiteral : public Expression {
+public:
+  BooleanLiteral(bool);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  bool value;
+};
+
 class IntegerLiteral : public Expression {
 public:
   IntegerLiteral(int);

@@ -52,6 +52,7 @@ private:
   Expression *parse_expression(Precedence);
   Expression *parse_identifier();
   Expression *parse_integer_literal();
+  Expression *parse_boolean_literal();
   Expression *parse_prefix_expression();
   Expression *parse_infix_expression(Expression *);
 
