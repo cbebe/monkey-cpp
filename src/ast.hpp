@@ -14,7 +14,10 @@ class Statement : public Node {
 public:
   virtual ~Statement() = default;
 };
-class Expression : public Node {};
+class Expression : public Node {
+public:
+  void expression();
+};
 // }}}
 
 class Program : virtual Node {
@@ -69,6 +72,15 @@ public:
   std::unique_ptr<Expression> right;
 };
 
+class CallExpression : public Expression {
+public:
+  CallExpression(std::unique_ptr<Expression>,
+                 std::vector<std::unique_ptr<Expression>> &&);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::unique_ptr<Expression> function;
+  std::vector<std::unique_ptr<Expression>> arguments;
+};
 // }}}
 
 // {{{ Statements
@@ -106,7 +118,8 @@ public:
 };
 // }}}
 
-// {{{ IfExpression (needs BlockStatement definition)
+// {{{ Expressions that need BlockStatement definition
+// {{{ IfExpression
 class IfExpression : public Expression {
 public:
   IfExpression(Expression *, BlockStatement *, BlockStatement *);
@@ -127,6 +140,7 @@ public:
   std::vector<Identifier> params;
   std::unique_ptr<BlockStatement> body;
 };
+// }}}
 // }}}
 
 // vim:foldmethod=marker

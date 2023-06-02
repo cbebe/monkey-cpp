@@ -71,6 +71,23 @@ std::string InfixExpression::to_string() const {
 }
 // }}}
 
+// {{{ CallExpression
+CallExpression::CallExpression(
+    std::unique_ptr<Expression> function,
+    std::vector<std::unique_ptr<Expression>> &&arguments)
+    : function(std::move(function)), arguments(std::move(arguments)) {}
+std::string CallExpression::token_literal() const { return "CALL"; }
+std::string CallExpression::to_string() const {
+  std::stringstream ss;
+  ss << token_literal() << "(";
+  for (auto &s : arguments) {
+    ss << s->to_string();
+  }
+  ss << ") ";
+  return ss.str();
+}
+// }}}
+
 // {{{ IfExpression
 IfExpression::IfExpression(Expression *condition, BlockStatement *consequence,
                            BlockStatement *alternative)

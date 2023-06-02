@@ -526,3 +526,101 @@ bool test_function_parameter_parsing() {
   }
   return true;
 }
+
+bool test_call_expression_parsing() {
+  Parser p{parse_input("add(1, 2 * 3, 4 + 5)")};
+  auto program{p.parse_program()};
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return false;
+  }
+  auto expr{
+      get_single_expression_statement<CallExpression>(program->statements[0])};
+  if (!expr) {
+    return false;
+  }
+  size_t params{expr->arguments.size()};
+  if (params != 3) {
+    std::cout << "Incorrect number of arguments. got " << params << " want "
+              << 3;
+    std::cout << expr->to_string() << std::endl;
+    return false;
+  }
+
+  auto result{true};
+  auto arg0{
+      assert_expr_type<IntegerLiteral>(std::move(expr->arguments[0]), result)};
+  if (!result) {
+    return false;
+  }
+  if (!assert_value(arg0, 1)) {
+    return false;
+  };
+  auto arg1{
+      assert_expr_type<InfixExpression>(std::move(expr->arguments[1]), result)};
+  if (!result) {
+    return false;
+  }
+  if (!test_single_infix_expression<IntegerLiteral>(
+          std::move(arg1), 2, token_types::Asterisk{}, 3)) {
+    return false;
+  };
+  auto arg2{
+      assert_expr_type<InfixExpression>(std::move(expr->arguments[2]), result)};
+  if (!result) {
+    return false;
+  }
+  if (!test_single_infix_expression<IntegerLiteral>(std::move(arg2), 4,
+                                                    token_types::Plus{}, 5)) {
+    return false;
+  };
+
+  return true;
+}
+
+bool test_call_parameter_parsing() {
+  struct param_test {
+    std::string input;
+    std::string ident;
+    std::vector<std::string> expected;
+  };
+  auto tests{std::vector{
+      param_test{"add();", "add", std::vector<std::string>{}},
+      param_test{"add(1)", "add", std::vector<std::string>{"1"}},
+      param_test{"mult(1, 2 * 3,  4 + 5)", "mult",
+                 std::vector<std::string>{"1", "(2 * 3)", "(4 + 5)"}},
+  }};
+  for (size_t i = 0; i < tests.size(); i++) {
+    param_test test{tests[i]};
+    Parser p{parse_input(test.input)};
+    auto program{p.parse_program()};
+    program = parser_pre_checks(p, std::move(program), 1);
+    if (!program) {
+      return false;
+    }
+    auto expr{get_single_expression_statement<CallExpression>(
+        program->statements[0])};
+    if (!expr) {
+      return false;
+    }
+    auto function{std::move(expr->function)};
+    auto result{true};
+    auto ident{assert_expr_type<Identifier>(std::move(function), result)};
+    if (!assert_value(ident, test.ident)) {
+      return false;
+    };
+    auto args{std::move(expr->arguments)};
+    size_t params{args.size()};
+    if (params != test.expected.size()) {
+      std::cout << "Incorrect number of arguments. got " << params << " want "
+                << test.expected.size();
+      return false;
+    }
+    for (size_t j = 0; j < args.size(); j++) {
+      if (args[j]->to_string() != test.expected[j]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

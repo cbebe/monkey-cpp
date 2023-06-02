@@ -49,3 +49,6 @@ bool test_if_expression();
 bool test_if_else_expression();
 bool test_function_literal_parsing();
 bool test_function_parameter_parsing();
+
+bool test_call_expression_parsing();
+bool test_call_parameter_parsing();
