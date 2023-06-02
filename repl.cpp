@@ -5,12 +5,11 @@
 #include <variant>
 #include <vector>
 
-const std::vector<std::string> PROMPTS{
-    "⊂((•‿̮• ))⊃ >", "⊂((・⊥・))⊃",     "⊂((*＞⊥σ))⊃",
-    "⊂((σ⊥σ))⊃",    "⊂((〃￣⊥￣〃))⊃", "⊂((∂⊥<*))⊃",
-    "⊂((＞⊥＜))⊃",  "⊂((≧⊥≦))⊃",       "⊂((δ⊥δ))⊃"};
+const std::vector<std::string_view> PROMPTS{
+    "⊂((•‿̮• ))⊃ ", "⊂((・⊥・))⊃", "⊂((*＞⊥σ))⊃", " ⊂((σ⊥σ))⊃ ",
+    "⊂((∂⊥<*))⊃ ", "⊂((＞⊥＜))⊃", " ⊂((≧⊥≦))⊃ ", " ⊂((δ⊥δ))⊃ "};
 
-void print_prompt() { std::cout << PROMPTS[rand() % 9] << " >> "; }
+void print_prompt() { std::cout << PROMPTS[rand() % PROMPTS.size()] << " >> "; }
 
 enum Command {
   Lex = 0,
