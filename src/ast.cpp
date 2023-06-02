@@ -119,6 +119,24 @@ std::string BlockStatement::to_string() const {
   }
   return ss.str();
 }
+BlockStatement::~BlockStatement() {
+  for (auto &s : statements) {
+    delete s;
+  }
+}
+// }}}
+
+// {{{ FunctionLiteral
+std::string FunctionLiteral::token_literal() const { return "FUNCTION"; }
+std::string FunctionLiteral::to_string() const {
+  std::stringstream ss;
+  ss << token_literal() << "(";
+  for (auto &s : params) {
+    ss << s->to_string();
+  }
+  ss << ") " << body->to_string();
+  return ss.str();
+}
 // }}}
 
 // vim:foldmethod=marker

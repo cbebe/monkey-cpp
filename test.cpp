@@ -24,6 +24,7 @@ int main() {
   TEST(test_operator_precedence, pass);
   TEST(test_if_expression, pass);
   TEST(test_if_else_expression, pass);
+  TEST(test_function_literal_parsing, pass);
 
   return pass ? 0 : 1;
 }

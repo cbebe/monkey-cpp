@@ -101,6 +101,7 @@ class BlockStatement : public Statement {
 public:
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
+  ~BlockStatement();
   std::vector<Statement *> statements{};
 };
 // }}}
@@ -114,6 +115,17 @@ public:
   std::unique_ptr<Expression> condition;
   std::unique_ptr<BlockStatement> consequence;
   std::unique_ptr<BlockStatement> alternative;
+};
+// }}}
+
+// {{{ FunctionLiteral
+class FunctionLiteral : public Expression {
+public:
+  FunctionLiteral(BlockStatement *);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::vector<Identifier *> params{};
+  std::unique_ptr<BlockStatement> body;
 };
 // }}}
 
