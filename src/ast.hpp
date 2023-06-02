@@ -121,10 +121,10 @@ public:
 // {{{ FunctionLiteral
 class FunctionLiteral : public Expression {
 public:
-  FunctionLiteral(BlockStatement *);
+  FunctionLiteral(std::vector<Identifier>, BlockStatement *);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
-  std::vector<Identifier *> params{};
+  std::vector<Identifier> params;
   std::unique_ptr<BlockStatement> body;
 };
 // }}}

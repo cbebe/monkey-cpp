@@ -49,6 +49,18 @@ Expression *Parser::parse_boolean_literal() {
   return new BooleanLiteral{cur_token.is_type<True>()};
 }
 
+Expression *Parser::parse_function_literal() {
+  if (!expect_peek<LParen>()) {
+    return nullptr;
+  }
+  auto params{parse_function_parameters()};
+  if (!expect_peek<LSquirly>()) {
+    return nullptr;
+  }
+  auto body{parse_block_statement()};
+  return new FunctionLiteral{params, body};
+}
+
 Expression *Parser::parse_if_expression() {
   if (!expect_peek<LParen>()) {
     return nullptr;

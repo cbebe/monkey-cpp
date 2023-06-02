@@ -48,3 +48,4 @@ bool test_operator_precedence();
 bool test_if_expression();
 bool test_if_else_expression();
 bool test_function_literal_parsing();
+bool test_function_parameter_parsing();

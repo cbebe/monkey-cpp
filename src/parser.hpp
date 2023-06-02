@@ -54,10 +54,13 @@ private:
   Expression *parse_identifier();
   Expression *parse_integer_literal();
   Expression *parse_boolean_literal();
+  Expression *parse_function_literal();
   Expression *parse_if_expression();
   Expression *parse_grouped_expression();
   Expression *parse_prefix_expression();
   Expression *parse_infix_expression(Expression *);
+
+  std::vector<Identifier> parse_function_parameters();
 
   void register_prefix(token_types::TokenVariant, PrefixParseFn);
   void register_infix(token_types::TokenVariant, InfixParseFn);

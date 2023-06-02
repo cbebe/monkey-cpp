@@ -25,6 +25,7 @@ int main() {
   TEST(test_if_expression, pass);
   TEST(test_if_else_expression, pass);
   TEST(test_function_literal_parsing, pass);
+  TEST(test_function_parameter_parsing, pass);
 
   return pass ? 0 : 1;
 }

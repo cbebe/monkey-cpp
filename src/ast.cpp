@@ -127,12 +127,15 @@ BlockStatement::~BlockStatement() {
 // }}}
 
 // {{{ FunctionLiteral
+FunctionLiteral::FunctionLiteral(std::vector<Identifier> params,
+                                 BlockStatement *body)
+    : params(params), body(body) {}
 std::string FunctionLiteral::token_literal() const { return "FUNCTION"; }
 std::string FunctionLiteral::to_string() const {
   std::stringstream ss;
   ss << token_literal() << "(";
   for (auto &s : params) {
-    ss << s->to_string();
+    ss << s.to_string();
   }
   ss << ") " << body->to_string();
   return ss.str();

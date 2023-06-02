@@ -27,6 +27,28 @@ inline void Parser::register_infix(TokenVariant t, InfixParseFn fn) {
   infix_parse_fns.insert(std::make_pair(t, fn));
 }
 
+std::vector<Identifier> Parser::parse_function_parameters() {
+  std::vector<Identifier> params{};
+  if (peek_token.is_type<RParen>()) {
+    next_token();
+    return params;
+  }
+  next_token();
+  params.push_back(Identifier{std::get<Ident>(cur_token.value).literal});
+
+  while (peek_token.is_type<Comma>()) {
+    next_token();
+    next_token();
+    params.push_back(Identifier{std::get<Ident>(cur_token.value).literal});
+  }
+
+  if (!expect_peek<RParen>()) {
+    return std::vector<Identifier>{};
+  }
+
+  return params;
+}
+
 Parser::Parser(Lexer l) : lexer(l) {
   next_token();
   next_token();
@@ -36,6 +58,7 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_prefix(Int{}, &Parser::parse_integer_literal);
   register_prefix(True{}, &Parser::parse_boolean_literal);
   register_prefix(False{}, &Parser::parse_boolean_literal);
+  register_prefix(Function{}, &Parser::parse_function_literal);
   register_prefix(Bang{}, &Parser::parse_prefix_expression);
   register_prefix(Minus{}, &Parser::parse_prefix_expression);
   register_prefix(If{}, &Parser::parse_if_expression);

@@ -4,6 +4,16 @@
 #include <iostream>
 #include <vector>
 
+template <class Expr, typename T>
+bool assert_stack_value(Expr expr, T test_value) {
+  if (expr.value != test_value) {
+    std::cout << "Failed test - want: " << test_value << ". got: " << expr.value
+              << std::endl;
+    return false;
+  }
+  return true;
+}
+
 template <class Expr, typename T> bool assert_value(Expr &expr, T test_value) {
   if (expr->value != test_value) {
     std::cout << "Failed test - want: " << test_value
@@ -457,12 +467,13 @@ bool test_function_literal_parsing() {
   if (params != 2) {
     std::cout << "Incorrect number of parameters. got " << params << " want "
               << 2;
+    std::cout << expr->to_string() << std::endl;
     return false;
   }
-  if (!assert_value(expr->params[0], "x")) {
+  if (!assert_stack_value(expr->params[0], "x")) {
     return false;
   }
-  if (!assert_value(expr->params[1], "y")) {
+  if (!assert_stack_value(expr->params[1], "y")) {
     return false;
   }
 
@@ -474,4 +485,44 @@ bool test_function_literal_parsing() {
 
   return test_single_infix_expression<Identifier>(std::move(body_expr), "x",
                                                   token_types::Plus{}, "y");
+}
+
+bool test_function_parameter_parsing() {
+  struct param_test {
+    std::string input;
+    std::vector<std::string> expected;
+  };
+  auto tests{std::vector{
+      param_test{"fn(){}", std::vector<std::string>{}},
+      param_test{"fn(x){}", std::vector<std::string>{"x"}},
+      param_test{"fn(x,y,z){}", std::vector<std::string>{"x", "y", "z"}},
+  }};
+  for (size_t i = 0; i < tests.size(); i++) {
+    param_test test{tests[i]};
+    Parser p{parse_input(test.input)};
+    auto program{p.parse_program()};
+    program = parser_pre_checks(p, std::move(program), 1);
+    if (!program) {
+      return false;
+    }
+    auto expr{get_single_expression_statement<FunctionLiteral>(
+        program->statements[0])};
+    if (!expr) {
+      return false;
+    }
+    size_t params{expr->params.size()};
+    if (params != test.expected.size()) {
+      std::cout << "Incorrect number of parameters. got " << params << " want "
+                << test.expected.size();
+      std::cout << expr->to_string() << std::endl;
+      return false;
+    }
+    for (size_t j = 0; j < expr->params.size(); j++) {
+
+      if (!assert_stack_value(expr->params[j], test.expected[j])) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
