@@ -79,11 +79,14 @@ CallExpression::CallExpression(
 std::string CallExpression::token_literal() const { return "CALL"; }
 std::string CallExpression::to_string() const {
   std::stringstream ss;
-  ss << token_literal() << "(";
-  for (auto &s : arguments) {
-    ss << s->to_string();
+  ss << function->to_string() << "(";
+  for (size_t i = 0; i < arguments.size(); ++i) {
+    ss << arguments[i]->to_string();
+    if (i != arguments.size() - 1) {
+      ss << ", ";
+    }
   }
-  ss << ") ";
+  ss << ")";
   return ss.str();
 }
 // }}}

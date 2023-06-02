@@ -5,7 +5,7 @@ using namespace token_types;
 std::unordered_map<TokenVariant, Precedence> precedences{
     {Eq{}, EQUALS},      {NotEq{}, EQUALS},     {LT{}, LESSGREATER},
     {GT{}, LESSGREATER}, {Plus{}, SUM},         {Minus{}, SUM},
-    {Slash{}, PRODUCT},  {Asterisk{}, PRODUCT},
+    {Slash{}, PRODUCT},  {Asterisk{}, PRODUCT}, {LParen{}, CALL},
 };
 
 Precedence get_precedence(TokenVariant v) {
@@ -107,4 +107,9 @@ Expression *Parser::parse_infix_expression(Expression *left) {
   next_token();
   auto right{parse_expression(precedence)};
   return new InfixExpression{left, oper, right};
+}
+
+Expression *Parser::parse_call_expression(Expression *caller) {
+  return new CallExpression{std::unique_ptr<Expression>{caller},
+                            parse_call_arguments()};
 }

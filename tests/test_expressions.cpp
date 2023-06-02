@@ -262,6 +262,18 @@ bool test_operator_precedence() {
 
   auto tests{std::vector{
       test_case{
+          "a + add(b * c) + d",
+          "((a + add((b * c))) + d)",
+      },
+      test_case{
+          "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+          "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+      },
+      test_case{
+          "add(a + b + c * d / f + g)",
+          "add((((a + b) + ((c * d) / f)) + g))",
+      },
+      test_case{
           "true",
           "true",
       },

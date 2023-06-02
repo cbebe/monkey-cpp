@@ -1,4 +1,5 @@
 #include "../parser.hpp"
+#include <memory>
 
 using namespace token_types;
 
@@ -49,6 +50,28 @@ std::vector<Identifier> Parser::parse_function_parameters() {
   return params;
 }
 
+std::vector<std::unique_ptr<Expression>> Parser::parse_call_arguments() {
+  std::vector<std::unique_ptr<Expression>> args{};
+  if (peek_token.is_type<RParen>()) {
+    next_token();
+    return args;
+  }
+  next_token();
+  args.push_back(std::unique_ptr<Expression>{parse_expression(LOWEST)});
+
+  while (peek_token.is_type<Comma>()) {
+    next_token();
+    next_token();
+    args.push_back(std::unique_ptr<Expression>{parse_expression(LOWEST)});
+  }
+
+  if (!expect_peek<RParen>()) {
+    return std::vector<std::unique_ptr<Expression>>{};
+  }
+
+  return args;
+}
+
 Parser::Parser(Lexer l) : lexer(l) {
   next_token();
   next_token();
@@ -71,4 +94,5 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_infix(NotEq{}, &Parser::parse_infix_expression);
   register_infix(LT{}, &Parser::parse_infix_expression);
   register_infix(GT{}, &Parser::parse_infix_expression);
+  register_infix(LParen{}, &Parser::parse_call_expression);
 };

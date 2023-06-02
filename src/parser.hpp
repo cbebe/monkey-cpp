@@ -59,8 +59,10 @@ private:
   Expression *parse_grouped_expression();
   Expression *parse_prefix_expression();
   Expression *parse_infix_expression(Expression *);
+  Expression *parse_call_expression(Expression *);
 
   std::vector<Identifier> parse_function_parameters();
+  std::vector<std::unique_ptr<Expression>> parse_call_arguments();
 
   void register_prefix(token_types::TokenVariant, PrefixParseFn);
   void register_infix(token_types::TokenVariant, InfixParseFn);
