@@ -283,7 +283,7 @@ test_single_block_statement(std::unique_ptr<BlockStatement> block) {
               << 1 << std::endl;
     return nullptr;
   }
-  return get_single_expression_statement<Expr>(block->statements[0]);
+  return get_single_expression_statement<Expr>(std::move(block->statements[0]));
 }
 
 ExprSubtype<IfExpression> test_single_if_expression(std::string input) {

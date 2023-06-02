@@ -16,8 +16,8 @@ CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 parser: monke_repl
 	@./$<
 
-lexer: monke_repl
-	@./$< lex
+leak: monke_repl
+	@valgrind ./$<
 
 all: monke_repl
 
@@ -47,6 +47,9 @@ test_obj:
 
 test: monke_test
 	@./$<
+
+test-leak: monke_test
+	@valgrind ./$<
 
 monke_test: $(OBJ) $(TEST_OBJ) test.o
 	g++ -o $@ $(CPPFLAGS) $^

@@ -9,5 +9,8 @@ procs:
   clean:
     cmd: [make, clean]
     autostart: false
+  test_leak:
+    cmd: [make, -j, test-leak]
+    autostart: false
 proc_list_width: 17
 hide_keymap_window: true

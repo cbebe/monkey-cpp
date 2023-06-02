@@ -2,7 +2,7 @@
 
 using namespace token_types;
 
-Statement *Parser::parse_statement() {
+std::unique_ptr<Statement> Parser::parse_statement() {
   if (cur_token.is_type<Let>()) {
     return parse_let_statement();
   }
@@ -13,16 +13,17 @@ Statement *Parser::parse_statement() {
   return parse_expression_statement();
 }
 
-ExpressionStatement *Parser::parse_expression_statement() {
-  Expression *expr{parse_expression(LOWEST)};
+std::unique_ptr<Statement> Parser::parse_expression_statement() {
+  auto expr{parse_expression(LOWEST)};
   if (peek_token.is_type<Semicolon>()) {
     next_token();
   }
 
-  return new ExpressionStatement{std::unique_ptr<Expression>{expr}};
+  return std::unique_ptr<Statement>{std::make_unique<ExpressionStatement>(
+      ExpressionStatement{std::move(expr)})};
 }
 
-ReturnStatement *Parser::parse_return_statement() {
+std::unique_ptr<Statement> Parser::parse_return_statement() {
   next_token();
 
   auto ret_val{parse_expression(LOWEST)};
@@ -30,10 +31,11 @@ ReturnStatement *Parser::parse_return_statement() {
     next_token();
   }
 
-  return new ReturnStatement{std::unique_ptr<Expression>{ret_val}};
+  return std::unique_ptr<Statement>{
+      std::make_unique<ReturnStatement>(ReturnStatement{std::move(ret_val)})};
 }
 
-LetStatement *Parser::parse_let_statement() {
+std::unique_ptr<Statement> Parser::parse_let_statement() {
   if (!expect_peek<Ident>()) {
     return nullptr;
   }
@@ -51,16 +53,17 @@ LetStatement *Parser::parse_let_statement() {
     next_token();
   }
 
-  return new LetStatement{identifier, std::unique_ptr<Expression>{value}};
+  return std::make_unique<LetStatement>(
+      LetStatement{identifier, std::move(value)});
 }
 
-BlockStatement *Parser::parse_block_statement() {
-  auto block{new BlockStatement{}};
+std::unique_ptr<BlockStatement> Parser::parse_block_statement() {
+  auto block = std::make_unique<BlockStatement>();
   next_token();
   while (!cur_token.is_type<RSquirly>() && !cur_token.is_type<Eof>()) {
     auto statement{parse_statement()};
     if (statement) {
-      block->statements.push_back(statement);
+      block->statements.push_back(std::move(statement));
     }
     next_token();
   }

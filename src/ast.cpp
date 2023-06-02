@@ -18,13 +18,6 @@ std::string Program::to_string() const {
   }
   return ss.str();
 }
-
-Program::~Program() {
-  for (auto &s : statements) {
-    delete s;
-  }
-}
-
 // }}}
 
 // {{{ Identifier
@@ -49,8 +42,8 @@ std::string BooleanLiteral::to_string() const {
 
 // {{{ PrefixExpression
 PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
-                                   Expression *e)
-    : oper(prefix), right(e) {}
+                                   std::unique_ptr<Expression> e)
+    : oper(prefix), right(std::move(e)) {}
 std::string PrefixExpression::token_literal() const { return "PREFIX"; }
 std::string PrefixExpression::to_string() const {
   auto value{right ? right->to_string() : "<NIL>"};
@@ -59,10 +52,10 @@ std::string PrefixExpression::to_string() const {
 // }}}
 
 // {{{ InfixExpression
-InfixExpression::InfixExpression(Expression *left,
+InfixExpression::InfixExpression(std::unique_ptr<Expression> left,
                                  token_types::TokenVariant prefix,
-                                 Expression *right)
-    : left(left), oper(prefix), right(right) {}
+                                 std::unique_ptr<Expression> right)
+    : left(std::move(left)), oper(prefix), right(std::move(right)) {}
 std::string InfixExpression::token_literal() const { return "INFIX"; }
 std::string InfixExpression::to_string() const {
   auto left_val{left ? left->to_string() : "<NIL>"};
@@ -92,10 +85,11 @@ std::string CallExpression::to_string() const {
 // }}}
 
 // {{{ IfExpression
-IfExpression::IfExpression(Expression *condition, BlockStatement *consequence,
-                           BlockStatement *alternative)
-    : condition(condition), consequence(consequence), alternative(alternative) {
-}
+IfExpression::IfExpression(std::unique_ptr<Expression> condition,
+                           std::unique_ptr<BlockStatement> consequence,
+                           std::unique_ptr<BlockStatement> alternative)
+    : condition(std::move(condition)), consequence(std::move(consequence)),
+      alternative(std::move(alternative)) {}
 std::string IfExpression::token_literal() const { return "if"; }
 std::string IfExpression::to_string() const {
   return "if" + condition->to_string() + " " + consequence->to_string() +
@@ -141,17 +135,12 @@ std::string BlockStatement::to_string() const {
   }
   return ss.str();
 }
-BlockStatement::~BlockStatement() {
-  for (auto &s : statements) {
-    delete s;
-  }
-}
 // }}}
 
 // {{{ FunctionLiteral
 FunctionLiteral::FunctionLiteral(std::vector<Identifier> params,
-                                 BlockStatement *body)
-    : params(params), body(body) {}
+                                 std::unique_ptr<BlockStatement> body)
+    : params(params), body(std::move(body)) {}
 std::string FunctionLiteral::token_literal() const { return "FUNCTION"; }
 std::string FunctionLiteral::to_string() const {
   std::stringstream ss;

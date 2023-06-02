@@ -16,7 +16,7 @@ public:
 };
 class Expression : public Node {
 public:
-  void expression();
+  virtual ~Expression() = default;
 };
 // }}}
 
@@ -24,8 +24,7 @@ class Program : virtual Node {
 public:
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
-  std::vector<Statement *> statements{};
-  ~Program();
+  std::vector<std::unique_ptr<Statement>> statements{};
 };
 
 // {{{ Expresssions
@@ -55,7 +54,7 @@ public:
 
 class PrefixExpression : public Expression {
 public:
-  PrefixExpression(token_types::TokenVariant, Expression *);
+  PrefixExpression(token_types::TokenVariant, std::unique_ptr<Expression>);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   token_types::TokenVariant oper;
@@ -64,7 +63,8 @@ public:
 
 class InfixExpression : public Expression {
 public:
-  InfixExpression(Expression *, token_types::TokenVariant, Expression *);
+  InfixExpression(std::unique_ptr<Expression>, token_types::TokenVariant,
+                  std::unique_ptr<Expression>);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::unique_ptr<Expression> left;
@@ -113,8 +113,7 @@ class BlockStatement : public Statement {
 public:
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
-  ~BlockStatement();
-  std::vector<Statement *> statements{};
+  std::vector<std::unique_ptr<Statement>> statements{};
 };
 // }}}
 
@@ -122,7 +121,8 @@ public:
 // {{{ IfExpression
 class IfExpression : public Expression {
 public:
-  IfExpression(Expression *, BlockStatement *, BlockStatement *);
+  IfExpression(std::unique_ptr<Expression>, std::unique_ptr<BlockStatement>,
+               std::unique_ptr<BlockStatement>);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::unique_ptr<Expression> condition;
@@ -134,7 +134,7 @@ public:
 // {{{ FunctionLiteral
 class FunctionLiteral : public Expression {
 public:
-  FunctionLiteral(std::vector<Identifier>, BlockStatement *);
+  FunctionLiteral(std::vector<Identifier>, std::unique_ptr<BlockStatement>);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::vector<Identifier> params;

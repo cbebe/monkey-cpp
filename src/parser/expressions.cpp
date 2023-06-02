@@ -16,7 +16,7 @@ Precedence get_precedence(TokenVariant v) {
 Precedence Parser::peek_predence() { return get_precedence(peek_token.value); }
 Precedence Parser::cur_predence() { return get_precedence(cur_token.value); }
 
-Expression *Parser::parse_expression(Precedence precedence) {
+std::unique_ptr<Expression> Parser::parse_expression(Precedence precedence) {
   auto prefix{prefix_parse_fns[cur_token.value]};
   if (!prefix) {
     errors.push_back("no prefix parse function for " + cur_token.to_string() +
@@ -31,25 +31,28 @@ Expression *Parser::parse_expression(Precedence precedence) {
       return left_exp;
     }
     next_token();
-    left_exp = (this->*infix)(left_exp);
+    left_exp = (this->*infix)(std::move(left_exp));
   }
 
   return left_exp;
 }
 
-Expression *Parser::parse_identifier() {
-  return new Identifier{std::get<Ident>(cur_token.value).literal};
+std::unique_ptr<Expression> Parser::parse_identifier() {
+  return std::unique_ptr<Expression>{std::make_unique<Identifier>(
+      Identifier{std::get<Ident>(cur_token.value).literal})};
 }
 
-Expression *Parser::parse_integer_literal() {
-  return new IntegerLiteral{std::get<Int>(cur_token.value).value};
+std::unique_ptr<Expression> Parser::parse_integer_literal() {
+  return std::unique_ptr<Expression>{std::make_unique<IntegerLiteral>(
+      IntegerLiteral{std::get<Int>(cur_token.value).value})};
 }
 
-Expression *Parser::parse_boolean_literal() {
-  return new BooleanLiteral{cur_token.is_type<True>()};
+std::unique_ptr<Expression> Parser::parse_boolean_literal() {
+  return std::unique_ptr<Expression>{std::make_unique<BooleanLiteral>(
+      BooleanLiteral{cur_token.is_type<True>()})};
 }
 
-Expression *Parser::parse_function_literal() {
+std::unique_ptr<Expression> Parser::parse_function_literal() {
   if (!expect_peek<LParen>()) {
     return nullptr;
   }
@@ -58,10 +61,11 @@ Expression *Parser::parse_function_literal() {
     return nullptr;
   }
   auto body{parse_block_statement()};
-  return new FunctionLiteral{params, body};
+  return std::unique_ptr<Expression>{std::make_unique<FunctionLiteral>(
+      FunctionLiteral{params, std::move(body)})};
 }
 
-Expression *Parser::parse_if_expression() {
+std::unique_ptr<Expression> Parser::parse_if_expression() {
   if (!expect_peek<LParen>()) {
     return nullptr;
   }
@@ -74,7 +78,7 @@ Expression *Parser::parse_if_expression() {
     return nullptr;
   }
   auto consequence{parse_block_statement()};
-  BlockStatement *alternative{};
+  std::unique_ptr<BlockStatement> alternative{};
   if (peek_token.is_type<Else>()) {
     next_token();
     if (!expect_peek<LSquirly>()) {
@@ -82,10 +86,13 @@ Expression *Parser::parse_if_expression() {
     }
     alternative = parse_block_statement();
   }
-  return new IfExpression{condition, consequence, alternative};
+
+  return std::unique_ptr<Expression>{std::make_unique<IfExpression>(
+      IfExpression{std::move(condition), std::move(consequence),
+                   std::move(alternative)})};
 }
 
-Expression *Parser::parse_grouped_expression() {
+std::unique_ptr<Expression> Parser::parse_grouped_expression() {
   next_token();
   auto expr{parse_expression(LOWEST)};
   if (!expect_peek<RParen>()) {
@@ -94,22 +101,27 @@ Expression *Parser::parse_grouped_expression() {
   return expr;
 }
 
-Expression *Parser::parse_prefix_expression() {
+std::unique_ptr<Expression> Parser::parse_prefix_expression() {
   auto oper{cur_token.value};
   next_token();
   auto right{parse_expression(PREFIX)};
-  return new PrefixExpression{oper, right};
+  return std::unique_ptr<Expression>{std::make_unique<PrefixExpression>(
+      PrefixExpression{oper, std::move(right)})};
 }
 
-Expression *Parser::parse_infix_expression(Expression *left) {
+std::unique_ptr<Expression>
+Parser::parse_infix_expression(std::unique_ptr<Expression> left) {
   auto oper{cur_token.value};
   auto precedence{cur_predence()};
   next_token();
   auto right{parse_expression(precedence)};
-  return new InfixExpression{left, oper, right};
+
+  return std::unique_ptr<Expression>{std::make_unique<InfixExpression>(
+      InfixExpression{std::move(left), oper, std::move(right)})};
 }
 
-Expression *Parser::parse_call_expression(Expression *caller) {
-  return new CallExpression{std::unique_ptr<Expression>{caller},
-                            parse_call_arguments()};
+std::unique_ptr<Expression>
+Parser::parse_call_expression(std::unique_ptr<Expression> caller) {
+  return std::unique_ptr<Expression>{std::make_unique<CallExpression>(
+      CallExpression{std::move(caller), parse_call_arguments()})};
 }

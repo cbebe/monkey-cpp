@@ -29,8 +29,9 @@ enum Precedence {
 
 class Parser;
 
-typedef Expression *(Parser::*PrefixParseFn)(void);
-typedef Expression *(Parser::*InfixParseFn)(Expression *);
+typedef std::unique_ptr<Expression> (Parser::*PrefixParseFn)(void);
+typedef std::unique_ptr<Expression> (Parser::*InfixParseFn)(
+    std::unique_ptr<Expression>);
 
 class Parser {
 public:
@@ -43,23 +44,25 @@ private:
   template <typename TokenType> bool expect_peek();
   template <typename TokenType> void peek_error(Token);
   // Statements
-  Statement *parse_statement();
-  LetStatement *parse_let_statement();
-  ReturnStatement *parse_return_statement();
-  ExpressionStatement *parse_expression_statement();
-  BlockStatement *parse_block_statement();
+  std::unique_ptr<Statement> parse_statement();
+  std::unique_ptr<Statement> parse_let_statement();
+  std::unique_ptr<Statement> parse_return_statement();
+  std::unique_ptr<Statement> parse_expression_statement();
+  std::unique_ptr<BlockStatement> parse_block_statement();
 
   // Expressions
-  Expression *parse_expression(Precedence);
-  Expression *parse_identifier();
-  Expression *parse_integer_literal();
-  Expression *parse_boolean_literal();
-  Expression *parse_function_literal();
-  Expression *parse_if_expression();
-  Expression *parse_grouped_expression();
-  Expression *parse_prefix_expression();
-  Expression *parse_infix_expression(Expression *);
-  Expression *parse_call_expression(Expression *);
+  std::unique_ptr<Expression> parse_expression(Precedence);
+  std::unique_ptr<Expression> parse_identifier();
+  std::unique_ptr<Expression> parse_integer_literal();
+  std::unique_ptr<Expression> parse_boolean_literal();
+  std::unique_ptr<Expression> parse_function_literal();
+  std::unique_ptr<Expression> parse_if_expression();
+  std::unique_ptr<Expression> parse_grouped_expression();
+  std::unique_ptr<Expression> parse_prefix_expression();
+  std::unique_ptr<Expression>
+      parse_infix_expression(std::unique_ptr<Expression>);
+  std::unique_ptr<Expression>
+      parse_call_expression(std::unique_ptr<Expression>);
 
   std::vector<Identifier> parse_function_parameters();
   std::vector<std::unique_ptr<Expression>> parse_call_arguments();

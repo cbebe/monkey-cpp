@@ -8,7 +8,7 @@ std::unique_ptr<Program> Parser::parse_program() {
   while (!cur_token.is_type<Eof>()) {
     auto statement{parse_statement()};
     if (statement) {
-      program->statements.push_back(statement);
+      program->statements.push_back(std::move(statement));
     }
     next_token();
   }

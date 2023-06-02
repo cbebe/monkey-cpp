@@ -48,8 +48,10 @@ bool test_let(std::string input, std::string name, T value) {
   if (!program) {
     return false;
   }
-  LetStatement *statement;
-  if (!assert_type<LetStatement>(program->statements[0], statement)) {
+  auto result{true};
+  auto statement{assert_statement_type<LetStatement>(
+      std::move(program->statements[0]), result)};
+  if (!result) {
     return false;
   }
   auto ident{statement->identifier.value};
@@ -70,8 +72,10 @@ bool test_return(std::string input, T value) {
   if (!program) {
     return false;
   }
-  ReturnStatement *statement;
-  if (!assert_type<ReturnStatement>(program->statements[0], statement)) {
+  auto result{true};
+  auto statement{assert_statement_type<ReturnStatement>(
+      std::move(program->statements[0]), result)};
+  if (!result) {
     return false;
   }
   return test_literal_expr<Expr, T>(std::move(statement->value), value);

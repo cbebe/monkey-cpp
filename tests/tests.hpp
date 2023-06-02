@@ -14,8 +14,9 @@ std::unique_ptr<Program> parser_pre_checks(Parser &p,
 Parser parse_input(std::string input);
 
 template <class StatementType>
-bool assert_type(Statement *to_convert, StatementType *&var) {
-  var = dynamic_cast<StatementType *>(to_convert);
+bool assert_type(std::unique_ptr<Statement> to_convert,
+                 std::unique_ptr<Statement> &var) {
+  var = std::unique_ptr<StatementType>(to_convert);
   if (!var) {
     std::cout << "Failed test: not a " << typeid(StatementType).name()
               << std::endl;
@@ -40,6 +41,21 @@ dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) {
 
 template <typename To>
 using ExprSubtype = std::unique_ptr<To, std::default_delete<Expression>>;
+
+template <typename To>
+using StatementSubtype = std::unique_ptr<To, std::default_delete<Statement>>;
+
+template <typename To>
+StatementSubtype<To>
+assert_statement_type(std::unique_ptr<Statement> test_statement, bool &result) {
+  auto statement{dynamic_unique_cast<To>(std::move(test_statement))};
+  if (!statement) {
+    std::cout << "Failed test: not " << typeid(To).name() << std::endl;
+    result = false;
+  }
+  result = true;
+  return statement;
+}
 
 template <typename To>
 ExprSubtype<To> assert_expr_type(std::unique_ptr<Expression> test_expr,
@@ -83,19 +99,19 @@ bool assert_stack_value(Expr expr, T test_value) {
 }
 
 template <typename To>
-ExprSubtype<To> assert_expr_type_statement(ExpressionStatement *statement,
-                                           bool &result) {
+ExprSubtype<To>
+assert_expr_type_statement(StatementSubtype<ExpressionStatement> statement,
+                           bool &result) {
   return assert_expr_type<To>(std::move(statement->value), result);
 }
 
 template <typename To>
-ExprSubtype<To> get_single_expression_statement(Statement *gen) {
-  ExpressionStatement *statement;
-  if (!assert_type<ExpressionStatement>(gen, statement)) {
-    return nullptr;
-  }
-  bool result;
-  auto expr{assert_expr_type_statement<To>(statement, result)};
+ExprSubtype<To>
+get_single_expression_statement(std::unique_ptr<Statement> gen) {
+  bool result{true};
+  auto statement{
+      assert_statement_type<ExpressionStatement>(std::move(gen), result)};
+  auto expr{assert_expr_type_statement<To>(std::move(statement), result)};
   if (!result) {
     return nullptr;
   }
@@ -104,7 +120,8 @@ ExprSubtype<To> get_single_expression_statement(Statement *gen) {
 }
 
 template <typename To, typename Value>
-ExprSubtype<To> get_single_expression_statement(Statement *gen, Value value) {
+ExprSubtype<To> get_single_expression_statement(std::unique_ptr<Statement> gen,
+                                                Value value) {
   auto expr{get_single_expression_statement<To>(gen)};
   if (!assert_value(expr, value)) {
     return nullptr;
@@ -114,7 +131,8 @@ ExprSubtype<To> get_single_expression_statement(Statement *gen, Value value) {
 }
 
 template <typename To, typename Value>
-bool test_single_expression_statement(Statement *gen, Value value) {
+bool test_single_expression_statement(std::unique_ptr<Statement> gen,
+                                      Value value) {
   return !!get_single_expression_statement<To>(gen, value);
 }
 
@@ -126,7 +144,7 @@ ExprSubtype<To> get_single_expression_program(std::string input) {
   if (!program) {
     return nullptr;
   }
-  return get_single_expression_statement<To>(program->statements[0]);
+  return get_single_expression_statement<To>(std::move(program->statements[0]));
 }
 
 template <typename To, typename Value>
