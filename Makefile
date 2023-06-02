@@ -13,7 +13,7 @@ TEST_OBJ := \
 
 CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 
-parser: monke_repl
+run: monke_repl
 	@./$<
 
 leak: monke_repl
@@ -64,4 +64,4 @@ clean-lsp:
 clean:
 	rm -rf *.o obj test_obj monke_repl monke_test
 
-.PHONY: clean clean-lsp test lsp run all time
+.PHONY: clean clean-lsp test run all time

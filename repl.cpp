@@ -11,53 +11,41 @@ const std::vector<std::string_view> PROMPTS{
 
 void print_prompt() { std::cout << PROMPTS[rand() % PROMPTS.size()] << " >> "; }
 
-enum Command {
-  Lex = 0,
-  Parse,
-};
+const std::string_view MONKEY_FACE = R"(            __,__
+   .--.  .-"     "-.  .--.
+  / .. \/  .-. .-.  \/ .. \
+ | |  '|  /   Y   \  |'  | |
+ | \   \  \ 0 | 0 /  /   / |
+  \ '- ,\.-"""""""-./, -' /
+   ''-' /_   ^ ^   _\ '-''
+       |  \._   _./  |
+       \   \ '~' /   /
+        '._ '-=-' _.'
+           '-----'
+  )";
 
-void lex() {
+void parse() {
   print_prompt();
   for (std::string line; std::getline(std::cin, line);) {
-    Lexer l{line};
-    for (auto t{l.next_token()}; !t.is_type<token_types::Eof>();
-         t = l.next_token()) {
-      std::cout << t.to_string() << std::endl;
+    Parser parser{Lexer{line}};
+    auto program{parser.parse_program()};
+    if (parser.errors.size() > 0) {
+      std::cout << MONKEY_FACE;
+      std::cout << "Woops! We can into some monkey business here!" << std::endl;
+      std::cout << "parser errors:" << std::endl;
+      for (auto &e : parser.errors) {
+        std::cout << '\t' << e << std::endl;
+      }
+    } else {
+      std::cout << program->to_string() << std::endl;
     }
     print_prompt();
   }
 }
 
-void parse() {
-  std::stringstream ss;
-  ss << std::cin.rdbuf();
-  Parser parser{Lexer{ss.str()}};
-  auto program{parser.parse_program()};
-  if (!program) {
-    for (auto &e : parser.errors) {
-      std::cout << e << std::endl;
-    }
-  } else {
-    std::cout << program->to_string() << std::endl;
-  }
-}
-
-int main(int argc, const char **argv) {
+int main() {
   srand(time(0));
-  Command com{};
-  if (argc > 1) {
-    std::string command{argv[1]};
-    if (command == "lex") {
-      com = Lex;
-    } else {
-      com = Parse;
-    }
-  }
-  if (com == Lex) {
-    lex();
-  } else {
-    parse();
-  }
+  parse();
   std::cout << std::endl;
   return 0;
 }
