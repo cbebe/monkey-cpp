@@ -86,7 +86,7 @@ public:
 // {{{ Statements
 class LetStatement : public Statement {
 public:
-  LetStatement(Identifier, Expression *);
+  LetStatement(Identifier, std::unique_ptr<Expression>);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   Identifier identifier;
@@ -95,7 +95,7 @@ public:
 
 class ReturnStatement : public Statement {
 public:
-  ReturnStatement(Expression *);
+  ReturnStatement(std::unique_ptr<Expression>);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::unique_ptr<Expression> value;
@@ -103,7 +103,7 @@ public:
 
 class ExpressionStatement : public Statement {
 public:
-  ExpressionStatement(Expression *);
+  ExpressionStatement(std::unique_ptr<Expression>);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::unique_ptr<Expression> value;

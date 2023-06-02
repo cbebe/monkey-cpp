@@ -104,8 +104,8 @@ std::string IfExpression::to_string() const {
 // }}}
 
 // {{{ LetStatement
-LetStatement::LetStatement(Identifier i, Expression *v)
-    : identifier(i), value(v) {}
+LetStatement::LetStatement(Identifier i, std::unique_ptr<Expression> v)
+    : identifier(i), value(std::move(v)) {}
 std::string LetStatement::token_literal() const { return "LET"; }
 std::string LetStatement::to_string() const {
   auto expr = value ? value->to_string() : "<NIL>";
@@ -114,7 +114,8 @@ std::string LetStatement::to_string() const {
 // }}}
 
 // {{{ ReturnStatement
-ReturnStatement::ReturnStatement(Expression *v) : value(v) {}
+ReturnStatement::ReturnStatement(std::unique_ptr<Expression> v)
+    : value(std::move(v)) {}
 std::string ReturnStatement::token_literal() const { return "RETURN"; }
 std::string ReturnStatement::to_string() const {
   auto expr = value ? value->to_string() : "<NIL>";
@@ -123,7 +124,8 @@ std::string ReturnStatement::to_string() const {
 // }}}
 
 // {{{ ExpressionStatement
-ExpressionStatement::ExpressionStatement(Expression *v) : value(v) {}
+ExpressionStatement::ExpressionStatement(std::unique_ptr<Expression> v)
+    : value(std::move(v)) {}
 std::string ExpressionStatement::token_literal() const { return "EXPRESSION"; }
 std::string ExpressionStatement::to_string() const {
   return value ? value->to_string() : "<NIL>";

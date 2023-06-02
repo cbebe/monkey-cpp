@@ -1,5 +1,6 @@
 #include "../src/parser.hpp"
 #include "tests.hpp"
+#include <any>
 #include <iostream>
 
 std::unique_ptr<Program>
@@ -38,55 +39,52 @@ std::unique_ptr<Program> parser_pre_checks(Parser &p,
 
 Parser parse_input(std::string input) { return Parser{Lexer{input}}; }
 
-bool test_let_statements() {
-  Parser p{parse_input("\
-let x = 5;\
-let y = 10;\
-let foobar = 838383;\
-")};
+template <typename Expr, typename T>
+bool test_let(std::string input, std::string name, T value) {
+  Parser p{parse_input(input)};
   auto program{p.parse_program()};
 
-  std::vector tests{"x", "y", "foobar"};
-  program = parser_pre_checks(p, std::move(program), tests.size());
+  program = parser_pre_checks(p, std::move(program), 1);
   if (!program) {
     return false;
   }
-
-  for (std::size_t i = 0; i < program->statements.size(); i++) {
-    LetStatement *statement;
-    if (!assert_type<LetStatement>(program->statements[i], statement)) {
-      return false;
-    }
-    auto ident{statement->identifier.value};
-    if (ident != tests[i]) {
-      std::cout << "Failed test: got identifier: " << ident
-                << ". want: " << tests[i] << std::endl;
-      return false;
-    }
+  LetStatement *statement;
+  if (!assert_type<LetStatement>(program->statements[0], statement)) {
+    return false;
   }
+  auto ident{statement->identifier.value};
+  if (ident != name) {
+    std::cout << "Failed test: got identifier: " << ident << ". want: " << name
+              << std::endl;
+    return false;
+  }
+  return test_literal_expr<Expr, T>(std::move(statement->value), value);
+}
 
-  return true;
+template <typename Expr, typename T>
+bool test_return(std::string input, T value) {
+  Parser p{parse_input(input)};
+  auto program{p.parse_program()};
+
+  program = parser_pre_checks(p, std::move(program), 1);
+  if (!program) {
+    return false;
+  }
+  ReturnStatement *statement;
+  if (!assert_type<ReturnStatement>(program->statements[0], statement)) {
+    return false;
+  }
+  return test_literal_expr<Expr, T>(std::move(statement->value), value);
+}
+
+bool test_let_statements() {
+  return test_let<IntegerLiteral>("let x = 5;", "x", 5) &&
+         test_let<BooleanLiteral>("let y = true;", "y", true) &&
+         test_let<Identifier>("let foobar = y;", "foobar", "y");
 }
 
 bool test_return_statements() {
-  Parser p{parse_input("\
-return 5;\
-return 10;\
-return 993322;\
-")};
-  auto program{p.parse_program()};
-
-  program = parser_pre_checks(p, std::move(program), 3);
-  if (!program) {
-    return false;
-  }
-
-  for (std::size_t i = 0; i < program->statements.size(); i++) {
-    ReturnStatement *statement;
-    if (!assert_type<ReturnStatement>(program->statements[i], statement)) {
-      return false;
-    }
-  }
-
-  return true;
+  return test_return<IntegerLiteral>("return 5;", 5) &&
+         test_return<BooleanLiteral>("return true;", true) &&
+         test_return<Identifier>("return foobar;", "foobar");
 }

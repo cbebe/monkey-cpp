@@ -4,87 +4,6 @@
 #include <iostream>
 #include <vector>
 
-template <class Expr, typename T>
-bool assert_stack_value(Expr expr, T test_value) {
-  if (expr.value != test_value) {
-    std::cout << "Failed test - want: " << test_value << ". got: " << expr.value
-              << std::endl;
-    return false;
-  }
-  return true;
-}
-
-template <class Expr, typename T> bool assert_value(Expr &expr, T test_value) {
-  if (expr->value != test_value) {
-    std::cout << "Failed test - want: " << test_value
-              << ". got: " << expr->value << std::endl;
-    return false;
-  }
-  return true;
-}
-
-template <typename To>
-using ExprSubtype = std::unique_ptr<To, std::default_delete<Expression>>;
-
-template <typename To>
-ExprSubtype<To> assert_expr_type(std::unique_ptr<Expression> test_expr,
-                                 bool &result) {
-  auto expr{dynamic_unique_cast<To>(std::move(test_expr))};
-  if (!expr) {
-    std::cout << "Failed test: not " << typeid(To).name() << std::endl;
-    result = false;
-  }
-  result = true;
-  return expr;
-}
-
-template <typename To>
-ExprSubtype<To> assert_expr_type_statement(ExpressionStatement *statement,
-                                           bool &result) {
-  return assert_expr_type<To>(std::move(statement->value), result);
-}
-
-template <typename To>
-ExprSubtype<To> get_single_expression_statement(Statement *gen) {
-  ExpressionStatement *statement;
-  if (!assert_type<ExpressionStatement>(gen, statement)) {
-    return nullptr;
-  }
-  bool result;
-  auto expr{assert_expr_type_statement<To>(statement, result)};
-  if (!result) {
-    return nullptr;
-  }
-
-  return expr;
-}
-
-template <typename To, typename Value>
-ExprSubtype<To> get_single_expression_statement(Statement *gen, Value value) {
-  auto expr{get_single_expression_statement<To>(gen)};
-  if (!assert_value(expr, value)) {
-    return nullptr;
-  }
-
-  return expr;
-}
-
-template <typename To, typename Value>
-bool test_single_expression_statement(Statement *gen, Value value) {
-  return !!get_single_expression_statement<To>(gen, value);
-}
-
-template <typename To, typename Value>
-bool test_single_expression_program(std::string input, Value value) {
-  Parser p{parse_input(input)};
-  auto program{p.parse_program()};
-  program = parser_pre_checks(p, std::move(program), 1);
-  if (!program) {
-    return false;
-  }
-  return test_single_expression_statement<To>(program->statements[0], value);
-}
-
 bool test_identifier_expression() {
   return test_single_expression_program<Identifier>("foobar;", "foobar");
 }
@@ -105,14 +24,7 @@ template <typename T> struct prefix_test_case {
 
 template <typename T, class C>
 bool do_prefix_test_case(prefix_test_case<T> test) {
-  Parser p{parse_input(test.input)};
-  auto program{p.parse_program()};
-  program = parser_pre_checks(p, std::move(program), 1);
-  if (!program) {
-    return false;
-  }
-  auto expr{get_single_expression_statement<PrefixExpression>(
-      program->statements[0])};
+  auto expr{get_single_expression_program<PrefixExpression>(test.input)};
   if (!expr) {
     return false;
   }
@@ -121,12 +33,7 @@ bool do_prefix_test_case(prefix_test_case<T> test) {
               << " got: " << type_to_string(expr->oper) << std::endl;
     return false;
   }
-  bool result{true};
-  auto right_expr{assert_expr_type<C>(std::move(expr->right), result)};
-  if (!result) {
-    return false;
-  }
-  if (!assert_value(right_expr, test.value)) {
+  if (!test_literal_expr<C>(std::move(expr->right), test.value)) {
     return false;
   }
 
@@ -179,20 +86,11 @@ bool test_single_infix_expression(ExprSubtype<InfixExpression> expr, T left,
               << " got: " << type_to_string(expr->oper) << std::endl;
     return false;
   }
-  bool result{true};
 
-  auto left_expr{assert_expr_type<C>(std::move(expr->left), result)};
-  if (!result) {
+  if (!test_literal_expr<C>(std::move(expr->left), left)) {
     return false;
   }
-  if (!assert_value(left_expr, left)) {
-    return false;
-  }
-  auto right_expr{assert_expr_type<C>(std::move(expr->right), result)};
-  if (!result) {
-    return false;
-  }
-  if (!assert_value(right_expr, right)) {
+  if (!test_literal_expr<C>(std::move(expr->right), right)) {
     return false;
   }
 
@@ -201,14 +99,7 @@ bool test_single_infix_expression(ExprSubtype<InfixExpression> expr, T left,
 
 template <class C, typename T>
 bool do_infix_test_case(infix_test_case<T> test) {
-  Parser p{parse_input(test.input)};
-  auto program{p.parse_program()};
-  program = parser_pre_checks(p, std::move(program), 1);
-  if (!program) {
-    return false;
-  }
-  auto expr{
-      get_single_expression_statement<InfixExpression>(program->statements[0])};
+  auto expr{get_single_expression_program<InfixExpression>(test.input)};
   if (!expr) {
     return false;
   }
@@ -396,14 +287,7 @@ test_single_block_statement(std::unique_ptr<BlockStatement> block) {
 }
 
 ExprSubtype<IfExpression> test_single_if_expression(std::string input) {
-  Parser p{parse_input(input)};
-  auto program{p.parse_program()};
-  program = parser_pre_checks(p, std::move(program), 1);
-  if (!program) {
-    return nullptr;
-  }
-  auto expr{
-      get_single_expression_statement<IfExpression>(program->statements[0])};
+  auto expr{get_single_expression_program<IfExpression>(input)};
   if (!expr) {
     return nullptr;
   }
@@ -464,14 +348,8 @@ bool test_if_else_expression() {
 }
 
 bool test_function_literal_parsing() {
-  Parser p{parse_input("fn(x, y) { x + y; }")};
-  auto program{p.parse_program()};
-  program = parser_pre_checks(p, std::move(program), 1);
-  if (!program) {
-    return false;
-  }
   auto expr{
-      get_single_expression_statement<FunctionLiteral>(program->statements[0])};
+      get_single_expression_program<FunctionLiteral>("fn(x, y) { x + y; }")};
   if (!expr) {
     return false;
   }
@@ -511,14 +389,7 @@ bool test_function_parameter_parsing() {
   }};
   for (size_t i = 0; i < tests.size(); i++) {
     param_test test{tests[i]};
-    Parser p{parse_input(test.input)};
-    auto program{p.parse_program()};
-    program = parser_pre_checks(p, std::move(program), 1);
-    if (!program) {
-      return false;
-    }
-    auto expr{get_single_expression_statement<FunctionLiteral>(
-        program->statements[0])};
+    auto expr{get_single_expression_program<FunctionLiteral>(test.input)};
     if (!expr) {
       return false;
     }
@@ -540,14 +411,8 @@ bool test_function_parameter_parsing() {
 }
 
 bool test_call_expression_parsing() {
-  Parser p{parse_input("add(1, 2 * 3, 4 + 5)")};
-  auto program{p.parse_program()};
-  program = parser_pre_checks(p, std::move(program), 1);
-  if (!program) {
-    return false;
-  }
   auto expr{
-      get_single_expression_statement<CallExpression>(program->statements[0])};
+      get_single_expression_program<CallExpression>("add(1, 2 * 3, 4 + 5)")};
   if (!expr) {
     return false;
   }
@@ -604,23 +469,14 @@ bool test_call_parameter_parsing() {
   }};
   for (size_t i = 0; i < tests.size(); i++) {
     param_test test{tests[i]};
-    Parser p{parse_input(test.input)};
-    auto program{p.parse_program()};
-    program = parser_pre_checks(p, std::move(program), 1);
-    if (!program) {
-      return false;
-    }
-    auto expr{get_single_expression_statement<CallExpression>(
-        program->statements[0])};
+    auto expr{get_single_expression_program<CallExpression>(test.input)};
     if (!expr) {
       return false;
     }
     auto function{std::move(expr->function)};
-    auto result{true};
-    auto ident{assert_expr_type<Identifier>(std::move(function), result)};
-    if (!assert_value(ident, test.ident)) {
+    if (!test_literal_expr<Identifier>(std::move(function), test.ident)) {
       return false;
-    };
+    }
     auto args{std::move(expr->arguments)};
     size_t params{args.size()};
     if (params != test.expected.size()) {

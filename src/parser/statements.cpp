@@ -19,18 +19,18 @@ ExpressionStatement *Parser::parse_expression_statement() {
     next_token();
   }
 
-  return new ExpressionStatement{expr};
+  return new ExpressionStatement{std::unique_ptr<Expression>{expr}};
 }
 
 ReturnStatement *Parser::parse_return_statement() {
   next_token();
 
-  // TODO: parse expression
-  while (!cur_token.is_type<Semicolon>()) {
+  auto ret_val{parse_expression(LOWEST)};
+  if (peek_token.is_type<Semicolon>()) {
     next_token();
   }
 
-  return new ReturnStatement{nullptr};
+  return new ReturnStatement{std::unique_ptr<Expression>{ret_val}};
 }
 
 LetStatement *Parser::parse_let_statement() {
@@ -43,13 +43,15 @@ LetStatement *Parser::parse_let_statement() {
   if (!expect_peek<Assign>()) {
     return nullptr;
   }
+  next_token();
 
-  while (!cur_token.is_type<Semicolon>()) {
+  auto value{parse_expression(LOWEST)};
+
+  if (peek_token.is_type<Semicolon>()) {
     next_token();
   }
 
-  // TODO: Parse the expression
-  return new LetStatement{identifier, nullptr};
+  return new LetStatement{identifier, std::unique_ptr<Expression>{value}};
 }
 
 BlockStatement *Parser::parse_block_statement() {
