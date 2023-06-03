@@ -1,6 +1,10 @@
 .cache
 monke_*
 
+test_ast
+test_lexer
+test_parser
+
 *.o
 
 obj

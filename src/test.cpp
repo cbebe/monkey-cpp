@@ -1,19 +1,22 @@
-#include "tests/tests.hpp"
+#include "ast/ast_test.hpp"
+#include "lexer/lexer_test.hpp"
+#include "parser/parser_test.hpp"
 
-// Love me some non-syntactic macros
-#define TEST(fn, res)                                                          \
-  do {                                                                         \
-    std::cout << #fn << " ";                                                   \
-    bool result{fn()};                                                         \
-    std::cout << (result ? "PASS" : "FAIL") << std::endl;                      \
-    res &= result;                                                             \
-  } while (0)
+#include "test.hpp"
 
 int main() {
   bool pass{true};
+
+  std::cout << "TEST LEXER" << std::endl;
   TEST(first_next_token_test, pass);
   TEST(second_next_token_test, pass);
   TEST(third_next_token_test, pass);
+
+  std::cout << std::endl << "TEST AST" << std::endl;
+  TEST(test_string, pass);
+
+  std::cout << std::endl << "TEST PARSER" << std::endl;
+
   TEST(test_let_statements, pass);
   TEST(test_return_statements, pass);
   TEST(test_identifier_expression, pass);

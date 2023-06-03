@@ -46,8 +46,7 @@ PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
     : oper(prefix), right(std::move(e)) {}
 std::string PrefixExpression::token_literal() const { return "PREFIX"; }
 std::string PrefixExpression::to_string() const {
-  auto value{right ? right->to_string() : "<NIL>"};
-  return "(" + Token{oper}.literal() + value + ")";
+  return "(" + Token{oper}.literal() + right->to_string() + ")";
 }
 // }}}
 
@@ -58,9 +57,8 @@ InfixExpression::InfixExpression(std::unique_ptr<Expression> left,
     : left(std::move(left)), oper(prefix), right(std::move(right)) {}
 std::string InfixExpression::token_literal() const { return "INFIX"; }
 std::string InfixExpression::to_string() const {
-  auto left_val{left ? left->to_string() : "<NIL>"};
-  auto right_val{right ? right->to_string() : "<NIL>"};
-  return "(" + left_val + " " + Token{oper}.literal() + " " + right_val + ")";
+  return "(" + left->to_string() + " " + Token{oper}.literal() + " " +
+         right->to_string() + ")";
 }
 // }}}
 
@@ -100,10 +98,10 @@ std::string IfExpression::to_string() const {
 // {{{ LetStatement
 LetStatement::LetStatement(Identifier i, std::unique_ptr<Expression> v)
     : identifier(i), value(std::move(v)) {}
-std::string LetStatement::token_literal() const { return "LET"; }
+std::string LetStatement::token_literal() const { return "let"; }
 std::string LetStatement::to_string() const {
-  auto expr = value ? value->to_string() : "<NIL>";
-  return token_literal() + " " + identifier.to_string() + " = " + expr;
+  return token_literal() + " " + identifier.to_string() + " = " +
+         value->to_string() + ";";
 }
 // }}}
 
@@ -112,8 +110,7 @@ ReturnStatement::ReturnStatement(std::unique_ptr<Expression> v)
     : value(std::move(v)) {}
 std::string ReturnStatement::token_literal() const { return "RETURN"; }
 std::string ReturnStatement::to_string() const {
-  auto expr = value ? value->to_string() : "<NIL>";
-  return token_literal() + " " + expr;
+  return token_literal() + " " + value->to_string() + ";";
 }
 // }}}
 
@@ -122,7 +119,7 @@ ExpressionStatement::ExpressionStatement(std::unique_ptr<Expression> v)
     : value(std::move(v)) {}
 std::string ExpressionStatement::token_literal() const { return "EXPRESSION"; }
 std::string ExpressionStatement::to_string() const {
-  return value ? value->to_string() : "<NIL>";
+  return value->to_string();
 }
 // }}}
 

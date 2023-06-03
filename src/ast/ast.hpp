@@ -1,5 +1,5 @@
 #pragma once
-#include "token.hpp"
+#include "../lexer/token.hpp"
 #include <memory>
 #include <vector>
 
@@ -118,7 +118,6 @@ public:
 // }}}
 
 // {{{ Expressions that need BlockStatement definition
-// {{{ IfExpression
 class IfExpression : public Expression {
 public:
   IfExpression(std::unique_ptr<Expression>, std::unique_ptr<BlockStatement>,
@@ -129,9 +128,7 @@ public:
   std::unique_ptr<BlockStatement> consequence;
   std::unique_ptr<BlockStatement> alternative;
 };
-// }}}
 
-// {{{ FunctionLiteral
 class FunctionLiteral : public Expression {
 public:
   FunctionLiteral(std::vector<Identifier>, std::unique_ptr<BlockStatement>);
@@ -140,7 +137,6 @@ public:
   std::vector<Identifier> params;
   std::unique_ptr<BlockStatement> body;
 };
-// }}}
 // }}}
 
 // vim:foldmethod=marker
