@@ -20,6 +20,8 @@ std::unique_ptr<Object> eval(std::unique_ptr<Node> node) {
     return eval(std::move(e->value));
   } else if (auto *e = dynamic_cast<IntegerLiteral *>(n)) {
     return std::make_unique<Integer>(Integer{e->value});
+  } else if (auto *b = dynamic_cast<BooleanLiteral *>(n)) {
+    return std::make_unique<Boolean>(Boolean{b->value});
   } else {
     return nullptr;
   }

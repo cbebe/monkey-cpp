@@ -9,10 +9,7 @@
 std::unique_ptr<Object> h_test_eval(std::string input) {
   Parser p{Lexer{input}};
   auto program{p.parse_program()};
-
-  // the down-cast is real
-  auto node{std::unique_ptr<Node>{std::move(program)}};
-  return std::unique_ptr<Object>(eval(std::move(node)));
+  return eval(std::move(program));
 }
 
 template <typename T> T *h_assert_obj_type(Object *obj, bool &result) {
@@ -32,27 +29,45 @@ template <typename T> bool h_assert_value(T got, T want) {
   return true;
 }
 
-bool h_test_integer_object(Object *obj, long expected) {
+template <class C, typename T> bool h_test_literal(Object *obj, T expected) {
   auto result{true};
-  auto integer{h_assert_obj_type<Integer>(obj, result)};
+  auto integer{h_assert_obj_type<C>(obj, result)};
   if (!result) {
     return false;
   }
-  return h_assert_value(integer->value, expected);
+  if (!h_assert_value(integer->value, expected)) {
+    return false;
+  }
+  return true;
 }
 
+template <typename T> struct test {
+  std::string input;
+  T expected;
+};
+
 bool test_eval_integer_expression() {
-  struct test {
-    std::string input;
-    long expected;
-  };
   auto tests{std::vector{
-      test{"5", 5},
-      test{"10", 10},
+      test<long>{"5", 5},
+      test<long>{"10", 10},
   }};
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
-    if (!h_test_integer_object(evaluated.get(), test.expected)) {
+    if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool test_eval_boolean_expression() {
+  auto tests{std::vector{
+      test<bool>{"true", true},
+      test<bool>{"false", false},
+  }};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Boolean>(evaluated.get(), test.expected)) {
       return false;
     }
   }

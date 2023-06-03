@@ -10,5 +10,6 @@ test_evaluator
 
 obj
 test_obj
+test_suite_obj
 
 compile_commands.json

@@ -4,10 +4,9 @@ OBJ := \
 	obj/object.o \
 	$(MAINS:%=obj/%.o) \
 
-TEST_OBJ := $(MAINS:%=test_obj/%_test.o)
 TEST_SUITES := $(MAINS:%=test_%)
 TEST_CMDS := $(MAINS:%=test-%)
-TEST_SUITE_OBJS := $(TEST_SUITES:%=test_obj/%.o)
+TEST_SUITE_OBJS := $(TEST_SUITES:%=test_suite_obj/%.o)
 
 CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 
@@ -40,7 +39,7 @@ test-evaluator: test_evaluator
 	@./$<
 
 clean:
-	rm -rf obj test_obj $(TEST_SUITES) monke_repl
+	rm -rf obj test_obj test_suite_obj $(TEST_SUITES) monke_repl
 
 
 clean-lsp:
@@ -58,7 +57,7 @@ leak: monke_repl
 # END Commands }}}
 
 # {{{ Executables
-%: $(TEST_OBJ) $(OBJ) test_obj/%.o
+test_%: test_obj/%_test.o $(OBJ) test_suite_obj/test_%.o
 	g++ -o $@ $(CPPFLAGS) $^
 
 monke_repl: $(OBJ) obj/repl.o
@@ -99,7 +98,7 @@ test_obj/%.o: src/evaluator/%.cpp src/evaluator/%.hpp | test_obj
 obj/%.o: src/%.cpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
-test_obj/%.o: src/%.cpp | test_obj
+test_suite_obj/%.o: src/%.cpp | test_suite_obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
 obj:
@@ -107,10 +106,14 @@ obj:
 
 test_obj:
 	mkdir -p $@
+
+test_suite_obj:
+	mkdir -p $@
 # }}}
 
 # did you `sudo apt install libstdc++-12-dev` ??
 compile_commands.json:
 	bear -- $(MAKE) all
 
+.SECONDARY:
 # vim:foldmethod=marker
