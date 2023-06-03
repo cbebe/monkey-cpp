@@ -9,5 +9,6 @@ int main() {
   TEST(test_if_else_expressions, pass);
   TEST(test_return_statements, pass);
   TEST(test_error_handling, pass);
+  TEST(test_let_statements, pass);
   return pass ? 0 : 1;
 }

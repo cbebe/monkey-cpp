@@ -44,10 +44,10 @@ public:
 
 class ReturnValue : public Object {
 public:
-  ReturnValue(std::unique_ptr<Object>);
+  ReturnValue(std::shared_ptr<Object>);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
-  std::unique_ptr<Object> value;
+  std::shared_ptr<Object> value;
 };
 
 class Error : public Object {

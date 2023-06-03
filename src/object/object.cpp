@@ -11,8 +11,7 @@ ObjectType Boolean::type() const { return BOOLEAN_OBJ; }
 std::string Null::inspect() const { return "null"; }
 ObjectType Null::type() const { return NULL_OBJ; }
 
-ReturnValue::ReturnValue(std::unique_ptr<Object> value)
-    : value(std::move(value)) {}
+ReturnValue::ReturnValue(std::shared_ptr<Object> value) : value(value) {}
 std::string ReturnValue::inspect() const { return value->inspect(); }
 ObjectType ReturnValue::type() const { return RETURN_VALUE_OBJ; }
 

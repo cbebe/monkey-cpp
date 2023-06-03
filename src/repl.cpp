@@ -1,5 +1,6 @@
 #include "evaluator/evaluator.hpp"
 #include "lexer/lexer.hpp"
+#include "object/environment.hpp"
 #include "parser/parser.hpp"
 #include <iostream>
 #include <sstream>
@@ -27,6 +28,7 @@ const std::string_view MONKEY_FACE = R"(            __,__
 
 void parse() {
   print_prompt();
+  auto env{std::make_shared<Environment>()};
   for (std::string line; std::getline(std::cin, line);) {
     Parser parser{Lexer{line}};
     auto program{parser.parse_program()};
@@ -38,7 +40,7 @@ void parse() {
         std::cout << '\t' << e << std::endl;
       }
     } else {
-      auto evaluated{eval(std::move(program))};
+      auto evaluated{eval(std::move(program), env)};
       if (evaluated) {
         std::cout << evaluated->inspect() << std::endl;
       }

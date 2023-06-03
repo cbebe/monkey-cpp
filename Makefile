@@ -2,6 +2,7 @@ MAINS := lexer ast parser evaluator
 OBJ := \
 	obj/token.o \
 	obj/object.o \
+	obj/environment.o \
 	$(MAINS:%=obj/%.o) \
 
 TEST_SUITES := $(MAINS:%=test_%)

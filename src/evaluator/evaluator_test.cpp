@@ -6,10 +6,11 @@
 #include <memory>
 #include <vector>
 
-std::unique_ptr<Object> h_test_eval(std::string input) {
+std::shared_ptr<Object> h_test_eval(std::string input) {
+  auto env{std::make_shared<Environment>()};
   Parser p{Lexer{input}};
   auto program{p.parse_program()};
-  return eval(std::move(program));
+  return eval(std::move(program), std::move(env));
 }
 
 template <typename T> T *h_assert_obj_type(Object *obj, bool &result) {
@@ -221,11 +222,33 @@ bool test_error_handling() {
 })",
           "unknown operator: BOOLEAN + BOOLEAN",
       },
+      test<std::string>{
+          "foobar",
+          "identifier not found: foobar",
+      },
   }};
   auto pass{true};
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Error>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+  }
+  return pass;
+}
+
+bool test_let_statements() {
+  auto tests{std::vector{
+      test<long>{"let a = 5; a;", 5},
+      test<long>{"let a = 5 * 5; a;", 25},
+      test<long>{"let a = 5; let b = a; b;", 5},
+      test<long>{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+  }};
+  auto pass{true};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
       std::cout << test.input << std::endl;
       pass &= false;
     }
