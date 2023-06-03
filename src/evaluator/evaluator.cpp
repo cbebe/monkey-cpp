@@ -19,6 +19,12 @@ std::shared_ptr<Object> return_value(std::shared_ptr<Object> value) {
 std::shared_ptr<Object> error(std::string message) {
   return std::make_shared<Error>(message);
 }
+std::shared_ptr<Object> function(std::vector<Identifier> params,
+                                 std::unique_ptr<BlockStatement> body,
+                                 std::shared_ptr<Environment> env) {
+  return std::make_shared<Function>(std::move(params), std::move(body),
+                                    std::move(env));
+}
 
 std::shared_ptr<Object> unknown_infix(ObjectType left, const Token &oper,
                                       ObjectType right) {
@@ -230,6 +236,8 @@ std::shared_ptr<Object> eval(std::unique_ptr<Node> node,
     }
     return eval_infix_expression(std::move(left), Token{e->oper},
                                  std::move(right));
+  } else if (auto *f{dynamic_cast<FunctionLiteral *>(n)}) {
+    return function(std::move(f->params), std::move(f->body), std::move(env));
   } else if (auto *e{dynamic_cast<IntegerLiteral *>(n)}) {
     return integer(e->value);
   } else if (auto *b{dynamic_cast<BooleanLiteral *>(n)}) {

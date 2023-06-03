@@ -1,13 +1,16 @@
 #pragma once
+#include "../ast/ast.hpp"
 #include <memory>
 #include <string>
+#include <vector>
 
 enum ObjectType {
   INTEGER_OBJ,
   BOOLEAN_OBJ,
   NULL_OBJ,
   RETURN_VALUE_OBJ,
-  ERROR_OBJ
+  ERROR_OBJ,
+  FUNCTION_OBJ,
 };
 
 namespace std {
@@ -56,4 +59,17 @@ public:
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
   std::string value;
+};
+
+class Environment;
+
+class Function : public Object {
+public:
+  Function(std::vector<Identifier>, std::unique_ptr<BlockStatement>,
+           std::shared_ptr<Environment>);
+  virtual std::string inspect() const override;
+  virtual ObjectType type() const override;
+  std::vector<Identifier> params;
+  std::unique_ptr<BlockStatement> body;
+  std::shared_ptr<Environment> env;
 };

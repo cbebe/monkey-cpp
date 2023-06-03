@@ -255,3 +255,26 @@ bool test_let_statements() {
   }
   return pass;
 }
+
+bool test_function_object() {
+  auto evaluated{h_test_eval("fn(x) { x + 2; };")};
+  auto result{true};
+  auto literal{h_assert_obj_type<Function>(evaluated.get(), result)};
+  if (!result) {
+    return false;
+  }
+  auto param_len{literal->params.size()};
+  if (param_len != 1) {
+    std::cout << "function has wrong parameters. got: " << param_len
+              << std::endl;
+    return false;
+  }
+  if (!h_assert_value<std::string>(literal->params[0].value, "x")) {
+    return false;
+  }
+  if (!h_assert_value<std::string>(literal->body->to_string(), "(x + 2)")) {
+    return false;
+  }
+
+  return true;
+}

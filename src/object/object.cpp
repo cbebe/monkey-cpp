@@ -1,4 +1,5 @@
 #include "object.hpp"
+#include <sstream>
 
 Integer::Integer(long value) : value(value) {}
 std::string Integer::inspect() const { return std::to_string(value); }
@@ -38,3 +39,22 @@ std::string to_string(ObjectType t) {
   }
 }
 } // namespace std
+
+Function::Function(std::vector<Identifier> params,
+                   std::unique_ptr<BlockStatement> body,
+                   std::shared_ptr<Environment> env)
+    : params(params), body(std::move(body)), env(std::move(env)) {}
+
+std::string Function::inspect() const {
+  std::stringstream ss;
+  ss << "fn(";
+  for (size_t i = 0; i < params.size(); i++) {
+    ss << params[i].to_string();
+    if (i < params.size() - 1) {
+      ss << ", ";
+    }
+  }
+  ss << ") {\n" << body->to_string() << "\n}";
+  return ss.str();
+}
+ObjectType Function::type() const { return FUNCTION_OBJ; }

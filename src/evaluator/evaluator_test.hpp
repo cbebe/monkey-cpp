@@ -5,3 +5,4 @@ bool test_if_else_expressions();
 bool test_return_statements();
 bool test_error_handling();
 bool test_let_statements();
+bool test_function_object();
