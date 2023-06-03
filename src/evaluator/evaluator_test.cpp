@@ -50,6 +50,8 @@ bool test_eval_integer_expression() {
   auto tests{std::vector{
       test<long>{"5", 5},
       test<long>{"10", 10},
+      test<long>{"-5", -5},
+      test<long>{"-10", -10},
   }};
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
