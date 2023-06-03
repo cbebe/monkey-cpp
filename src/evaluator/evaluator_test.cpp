@@ -73,3 +73,21 @@ bool test_eval_boolean_expression() {
   }
   return true;
 }
+
+bool test_bang_operator() {
+  auto tests{std::vector{
+      test<bool>{"!true", false},
+      test<bool>{"!false", true},
+      test<bool>{"!5", false},
+      test<bool>{"!!true", true},
+      test<bool>{"!!false", false},
+      test<bool>{"!!5", true},
+  }};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Boolean>(evaluated.get(), test.expected)) {
+      return false;
+    }
+  }
+  return true;
+}
