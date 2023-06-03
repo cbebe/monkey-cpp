@@ -127,3 +127,39 @@ bool test_bang_operator() {
   }
   return pass;
 }
+
+bool test_if_else_expressions() {
+  auto ten = std::make_unique<long>(10);
+  auto twenty = std::make_unique<long>(20);
+  auto p_10 = ten.get();
+  auto p_20 = twenty.get();
+  auto tests{std::vector{
+      test<long *>{"if (true) { 10 }", p_10},
+      test<long *>{"if (false) { 10 }", nullptr},
+      test<long *>{"if (1) { 10 }", p_10},
+      test<long *>{"if (1 < 2) { 10 }", p_10},
+      test<long *>{"if (1 > 2) { 10 }", nullptr},
+      test<long *>{"if (1 > 2) { 10 } else { 20 }", p_20},
+      test<long *>{"if (1 < 2) { 10 } else { 20 }", p_10},
+  }};
+
+  auto pass{true};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    auto val{evaluated.get()};
+    if (test.expected) {
+      if (!h_test_literal<Integer>(val, *test.expected)) {
+        std::cout << test.input << std::endl;
+        std::cout << val->inspect() << std::endl;
+        pass &= false;
+      }
+    } else {
+      auto result{true};
+      h_assert_obj_type<Null>(val, result);
+      if (!result) {
+        pass &= false;
+      }
+    }
+  }
+  return pass;
+}

@@ -24,19 +24,22 @@ std::unique_ptr<Boolean> boolean(bool value) {
   return std::make_unique<Boolean>(value ? _TRUE : _FALSE);
 }
 
-std::unique_ptr<Object>
-eval_bang_operator_expression(std::unique_ptr<Object> expr) {
-  Object *obj{expr.get()};
+bool is_truthy(Object *obj) {
   switch (obj->type()) {
   case INTEGER_OBJ:
-    return boolean(!static_cast<Integer *>(obj)->value);
+    return static_cast<Integer *>(obj)->value;
   case BOOLEAN_OBJ:
-    return boolean(!(static_cast<Boolean *>(obj)->value));
+    return static_cast<Boolean *>(obj)->value;
   case NULL_OBJ:
-    return boolean(true);
+    return false;
   default:
-    return boolean(false);
+    return true;
   }
+}
+
+std::unique_ptr<Object>
+eval_bang_operator_expression(std::unique_ptr<Object> expr) {
+  return boolean(!is_truthy(expr.get()));
 }
 
 std::unique_ptr<Object>
@@ -108,12 +111,27 @@ std::unique_ptr<Object> eval_infix_expression(std::unique_ptr<Object> left,
   return null();
 }
 
+std::unique_ptr<Object> eval_if_expression(IfExpression *expr) {
+  auto condition{eval(std::move(expr->condition))};
+  if (is_truthy(condition.get())) {
+    return eval(std::move(expr->consequence));
+  } else if (expr->alternative != nullptr) {
+    return eval(std::move(expr->alternative));
+  } else {
+    return null();
+  }
+}
+
 std::unique_ptr<Object> eval(std::unique_ptr<Node> node) {
   Node *n = node.get();
   if (auto *p = dynamic_cast<Program *>(n)) {
     return eval_statements(std::move(p->statements));
   } else if (auto *e{dynamic_cast<ExpressionStatement *>(n)}) {
     return eval(std::move(e->value));
+  } else if (auto *b{dynamic_cast<BlockStatement *>(n)}) {
+    return eval_statements(std::move(b->statements));
+  } else if (auto *i{dynamic_cast<IfExpression *>(n)}) {
+    return eval_if_expression(std::move(i));
   } else if (auto *e{dynamic_cast<PrefixExpression *>(n)}) {
     return eval_prefix_expression(Token{e->oper}, eval(std::move(e->right)));
   } else if (auto *e{dynamic_cast<InfixExpression *>(n)}) {
