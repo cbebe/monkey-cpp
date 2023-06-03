@@ -8,5 +8,6 @@ int main() {
   TEST(test_bang_operator, pass);
   TEST(test_if_else_expressions, pass);
   TEST(test_return_statements, pass);
+  TEST(test_error_handling, pass);
   return pass ? 0 : 1;
 }

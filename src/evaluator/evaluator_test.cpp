@@ -31,11 +31,11 @@ template <typename T> bool h_assert_value(T got, T want) {
 
 template <class C, typename T> bool h_test_literal(Object *obj, T expected) {
   auto result{true};
-  auto integer{h_assert_obj_type<C>(obj, result)};
+  auto literal{h_assert_obj_type<C>(obj, result)};
   if (!result) {
     return false;
   }
-  if (!h_assert_value(integer->value, expected)) {
+  if (!h_assert_value(literal->value, expected)) {
     return false;
   }
   return true;
@@ -178,6 +178,54 @@ bool test_return_statements() {
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+  }
+  return pass;
+}
+
+bool test_error_handling() {
+  auto tests{std::vector{
+      test<std::string>{
+          "5 + true;",
+          "type mismatch: INTEGER + BOOLEAN",
+      },
+      test<std::string>{
+          "5 + true; 5;",
+          "type mismatch: INTEGER + BOOLEAN",
+      },
+      test<std::string>{
+          "-true",
+          "unknown operator: -BOOLEAN",
+      },
+      test<std::string>{
+          "true + false;",
+          "unknown operator: BOOLEAN + BOOLEAN",
+      },
+      test<std::string>{
+          "5; true + false; 5",
+          "unknown operator: BOOLEAN + BOOLEAN",
+      },
+      test<std::string>{
+          "if (10 > 1) { true + false; }",
+          "unknown operator: BOOLEAN + BOOLEAN",
+      },
+      test<std::string>{
+          R"(if (10 > 1) {
+  if (10 > 1) {
+    return true + false;
+  }
+
+  return 1;
+})",
+          "unknown operator: BOOLEAN + BOOLEAN",
+      },
+  }};
+  auto pass{true};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Error>(evaluated.get(), test.expected)) {
       std::cout << test.input << std::endl;
       pass &= false;
     }

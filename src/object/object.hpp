@@ -7,6 +7,11 @@ enum ObjectType {
   BOOLEAN_OBJ,
   NULL_OBJ,
   RETURN_VALUE_OBJ,
+  ERROR_OBJ
+};
+
+namespace std {
+std::string to_string(ObjectType);
 };
 
 class Object {
@@ -43,4 +48,12 @@ public:
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
   std::unique_ptr<Object> value;
+};
+
+class Error : public Object {
+public:
+  Error(std::string);
+  virtual std::string inspect() const override;
+  virtual ObjectType type() const override;
+  std::string value;
 };
