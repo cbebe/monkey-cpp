@@ -201,18 +201,18 @@ std::unique_ptr<Expression> Parser::parse_expression(Precedence precedence) {
 }
 
 std::unique_ptr<Expression> Parser::parse_identifier() {
-  return std::unique_ptr<Expression>{std::make_unique<Identifier>(
-      Identifier{std::get<Ident>(cur_token.value).literal})};
+  return std::make_unique<Identifier>(
+      Identifier{std::get<Ident>(cur_token.value).literal});
 }
 
 std::unique_ptr<Expression> Parser::parse_integer_literal() {
-  return std::unique_ptr<Expression>{std::make_unique<IntegerLiteral>(
-      IntegerLiteral{std::get<Int>(cur_token.value).value})};
+  return std::make_unique<IntegerLiteral>(
+      IntegerLiteral{std::get<Int>(cur_token.value).value});
 }
 
 std::unique_ptr<Expression> Parser::parse_boolean_literal() {
-  return std::unique_ptr<Expression>{std::make_unique<BooleanLiteral>(
-      BooleanLiteral{cur_token.is_type<True>()})};
+  return std::make_unique<BooleanLiteral>(
+      BooleanLiteral{cur_token.is_type<True>()});
 }
 
 std::unique_ptr<Expression> Parser::parse_function_literal() {
@@ -224,8 +224,8 @@ std::unique_ptr<Expression> Parser::parse_function_literal() {
     return nullptr;
   }
   auto body{parse_block_statement()};
-  return std::unique_ptr<Expression>{std::make_unique<FunctionLiteral>(
-      FunctionLiteral{params, std::move(body)})};
+  return std::make_unique<FunctionLiteral>(
+      FunctionLiteral{params, std::move(body)});
 }
 
 std::unique_ptr<Expression> Parser::parse_if_expression() {
@@ -250,9 +250,8 @@ std::unique_ptr<Expression> Parser::parse_if_expression() {
     alternative = parse_block_statement();
   }
 
-  return std::unique_ptr<Expression>{std::make_unique<IfExpression>(
-      IfExpression{std::move(condition), std::move(consequence),
-                   std::move(alternative)})};
+  return std::make_unique<IfExpression>(IfExpression{
+      std::move(condition), std::move(consequence), std::move(alternative)});
 }
 
 std::unique_ptr<Expression> Parser::parse_grouped_expression() {
@@ -268,8 +267,8 @@ std::unique_ptr<Expression> Parser::parse_prefix_expression() {
   auto oper{cur_token.value};
   next_token();
   auto right{parse_expression(PREFIX)};
-  return std::unique_ptr<Expression>{std::make_unique<PrefixExpression>(
-      PrefixExpression{oper, std::move(right)})};
+  return std::make_unique<PrefixExpression>(
+      PrefixExpression{oper, std::move(right)});
 }
 
 std::unique_ptr<Expression>
@@ -279,8 +278,8 @@ Parser::parse_infix_expression(std::unique_ptr<Expression> left) {
   next_token();
   auto right{parse_expression(precedence)};
 
-  return std::unique_ptr<Expression>{std::make_unique<InfixExpression>(
-      InfixExpression{std::move(left), oper, std::move(right)})};
+  return std::make_unique<InfixExpression>(
+      InfixExpression{std::move(left), oper, std::move(right)});
 }
 
 std::unique_ptr<Expression>

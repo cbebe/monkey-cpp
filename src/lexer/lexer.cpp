@@ -1,5 +1,4 @@
 #include "lexer.hpp"
-#include "token.hpp"
 #include <string>
 
 Lexer::Lexer(std::string input) : input{input} { read_char(); };
@@ -115,10 +114,10 @@ void Lexer::skip_whitespace() {
   }
 }
 
-int Lexer::read_number() {
+long Lexer::read_number() {
   auto start{position};
   while (is_digit(ch)) {
     read_char();
   }
-  return stoi(input.substr(start, position - start));
+  return std::stol(input.substr(start, position - start));
 }

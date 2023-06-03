@@ -1,0 +1,8 @@
+#include "evaluator/evaluator_test.hpp"
+#include "test.hpp"
+
+int main() {
+  bool pass{true};
+  TEST(test_eval_integer_expression, pass);
+  return pass ? 0 : 1;
+}

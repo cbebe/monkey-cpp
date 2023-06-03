@@ -1,5 +1,5 @@
 #pragma once
-#include "../lexer/token.hpp"
+#include "../token/token.hpp"
 #include <memory>
 #include <vector>
 
@@ -19,8 +19,7 @@ public:
   virtual ~Expression() = default;
 };
 // }}}
-
-class Program : virtual Node {
+class Program : public Node {
 public:
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
@@ -46,10 +45,10 @@ public:
 
 class IntegerLiteral : public Expression {
 public:
-  IntegerLiteral(int);
+  IntegerLiteral(long);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
-  int value;
+  long value;
 };
 
 class PrefixExpression : public Expression {

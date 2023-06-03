@@ -1,5 +1,5 @@
 #pragma once
-#include "token.hpp"
+#include "../token/token.hpp"
 
 class Lexer {
 public:
@@ -9,7 +9,7 @@ public:
 private:
   void read_char();
   char peek_char();
-  int read_number();
+  long read_number();
   void skip_whitespace();
   std::string read_identifier();
   std::string input;

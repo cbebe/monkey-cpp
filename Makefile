@@ -1,13 +1,13 @@
+MAINS := lexer ast parser evaluator
 OBJ := \
 	obj/token.o \
-	obj/lexer.o \
-	obj/ast.o \
-	obj/parser.o \
+	obj/object.o \
+	$(MAINS:%=obj/%.o) \
 
-TEST_OBJ := \
-	test_obj/parser_test.o \
-	test_obj/lexer_test.o \
-	test_obj/ast_test.o \
+TEST_OBJ := $(MAINS:%=test_obj/%_test.o)
+TEST_SUITES := $(MAINS:%=test_%)
+TEST_CMDS := $(MAINS:%=test-%)
+TEST_SUITE_OBJS := $(TEST_SUITES:%=test_obj/%.o)
 
 CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 
@@ -21,7 +21,7 @@ fmt:
 lint:
 	clang-tidy **/*.cpp **/*.hpp
 
-test: test-lexer test-ast test-parser
+test: $(TEST_CMDS)
 
 test-lexer: test_lexer
 	@echo "==> LEXER TEST"
@@ -35,8 +35,12 @@ test-parser: test_parser
 	@echo "==> PARSER TEST"
 	@./$<
 
+test-evaluator: test_evaluator
+	@echo "==> EVALUATOR TEST"
+	@./$<
+
 clean:
-	rm -rf obj test_obj test_ast test_lexer test_parer monke_repl
+	rm -rf obj test_obj $(TEST_SUITES) monke_repl
 
 
 clean-lsp:
@@ -45,20 +49,16 @@ clean-lsp:
 run: monke_repl
 	@./$<
 
+all: monke_repl
+
 leak: monke_repl
 	@valgrind ./$<
 
-.PHONY: fmt lint test-lexer test-ast test-parser clean clean-lsp run leak
+.PHONY: fmt lint $(TEST_CMDS) clean clean-lsp run leak
 # END Commands }}}
 
 # {{{ Executables
-test_lexer: $(TEST_OBJ) $(OBJ) test_obj/test_lexer.o
-	g++ -o $@ $(CPPFLAGS) $^
-
-test_ast: $(TEST_OBJ) $(OBJ) test_obj/test_ast.o
-	g++ -o $@ $(CPPFLAGS) $^
-
-test_parser: $(TEST_OBJ) $(OBJ) test_obj/test_parser.o
+%: $(TEST_OBJ) $(OBJ) test_obj/%.o
 	g++ -o $@ $(CPPFLAGS) $^
 
 monke_repl: $(OBJ) obj/repl.o
@@ -66,13 +66,22 @@ monke_repl: $(OBJ) obj/repl.o
 # END Executables }}}
 
 # {{{ Objects
+obj/%.o: src/token/%.cpp src/token/%.hpp | obj
+	g++ -c -o $@ $(CPPFLAGS) $<
+
+obj/%.o: src/ast/%.cpp src/ast/%.hpp | obj
+	g++ -c -o $@ $(CPPFLAGS) $<
+
 obj/%.o: src/lexer/%.cpp src/lexer/%.hpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
 obj/%.o: src/parser/%.cpp src/parser/%.hpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
-obj/%.o: src/ast/%.cpp src/ast/%.hpp | obj
+obj/%.o: src/object/%.cpp src/object/%.hpp | obj
+	g++ -c -o $@ $(CPPFLAGS) $<
+
+obj/%.o: src/evaluator/%.cpp src/evaluator/%.hpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
 test_obj/%.o: src/lexer/%.cpp src/lexer/%.hpp | test_obj
@@ -82,6 +91,9 @@ test_obj/%.o: src/ast/%.cpp src/ast/%.hpp | test_obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
 test_obj/%.o: src/parser/%.cpp src/parser/%.hpp | test_obj
+	g++ -c -o $@ $(CPPFLAGS) $<
+
+test_obj/%.o: src/evaluator/%.cpp src/evaluator/%.hpp | test_obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
 obj/%.o: src/%.cpp | obj

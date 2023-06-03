@@ -18,7 +18,7 @@ struct Ident {
   bool operator==(const Ident &) const { return true; }
 };
 struct Int {
-  int value;
+  long value;
   bool operator==(const Int &) const { return true; }
 };
 

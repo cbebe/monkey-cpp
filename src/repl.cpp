@@ -1,3 +1,4 @@
+#include "evaluator/evaluator.hpp"
 #include "lexer/lexer.hpp"
 #include "parser/parser.hpp"
 #include <iostream>
@@ -37,7 +38,10 @@ void parse() {
         std::cout << '\t' << e << std::endl;
       }
     } else {
-      std::cout << program->to_string() << std::endl;
+      auto evaluated{eval(std::move(program))};
+      if (evaluated) {
+        std::cout << evaluated->inspect() << std::endl;
+      }
     }
     print_prompt();
   }
