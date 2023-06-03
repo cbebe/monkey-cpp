@@ -77,14 +77,35 @@ bool test_eval_boolean_expression() {
   auto tests{std::vector{
       test<bool>{"true", true},
       test<bool>{"false", false},
+
+      test<bool>{"1 < 2", true},
+      test<bool>{"1 > 2", false},
+      test<bool>{"1 < 1", false},
+      test<bool>{"1 > 1", false},
+      test<bool>{"1 == 1", true},
+      test<bool>{"1 != 1", false},
+      test<bool>{"1 == 2", false},
+      test<bool>{"1 != 2", true},
+
+      test<bool>{"true == true", true},
+      test<bool>{"false == false", true},
+      test<bool>{"true == false", false},
+      test<bool>{"true != false", true},
+      test<bool>{"false != true", true},
+      test<bool>{"(1 < 2) == true", true},
+      test<bool>{"(1 < 2) == false", false},
+      test<bool>{"(1 > 2) == true", false},
+      test<bool>{"(1 > 2) == false", true},
   }};
+  auto pass{true};
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Boolean>(evaluated.get(), test.expected)) {
-      return false;
+      std::cout << test.input << std::endl;
+      pass &= false;
     }
   }
-  return true;
+  return pass;
 }
 
 bool test_bang_operator() {
@@ -96,11 +117,13 @@ bool test_bang_operator() {
       test<bool>{"!!false", false},
       test<bool>{"!!5", true},
   }};
+  auto pass{true};
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Boolean>(evaluated.get(), test.expected)) {
-      return false;
+      std::cout << test.input << std::endl;
+      pass &= false;
     }
   }
-  return true;
+  return pass;
 }

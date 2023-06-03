@@ -16,30 +16,34 @@ eval_statements(std::vector<std::unique_ptr<Statement>> statements) {
   return ret_val;
 }
 
+std::unique_ptr<Object> null() { return std::make_unique<Null>(_NULL); }
+std::unique_ptr<Object> integer(long value) {
+  return std::make_unique<Integer>(value);
+}
+std::unique_ptr<Boolean> boolean(bool value) {
+  return std::make_unique<Boolean>(value ? _TRUE : _FALSE);
+}
+
 std::unique_ptr<Object>
 eval_bang_operator_expression(std::unique_ptr<Object> expr) {
   Object *obj{expr.get()};
   switch (obj->type()) {
   case INTEGER_OBJ:
-    return std::make_unique<Boolean>(
-        static_cast<Integer *>(obj)->value ? _FALSE : _TRUE);
+    return boolean(!static_cast<Integer *>(obj)->value);
   case BOOLEAN_OBJ:
-    return std::make_unique<Boolean>(
-        static_cast<Boolean *>(obj)->value ? _FALSE : _TRUE);
+    return boolean(!(static_cast<Boolean *>(obj)->value));
   case NULL_OBJ:
-    return std::make_unique<Boolean>(_TRUE);
+    return boolean(true);
   default:
-    return std::make_unique<Boolean>(_FALSE);
+    return boolean(false);
   }
 }
-
-std::unique_ptr<Object> null() { return std::make_unique<Null>(_NULL); }
 
 std::unique_ptr<Object>
 eval_minus_operator_expression(std::unique_ptr<Object> expr) {
   Object *obj{expr.get()};
   if (obj->type() == INTEGER_OBJ) {
-    return std::make_unique<Integer>(-(static_cast<Integer *>(obj)->value));
+    return integer(-(static_cast<Integer *>(obj)->value));
   } else {
     return null();
   }
@@ -63,21 +67,27 @@ std::unique_ptr<Object>
 eval_integer_infix_expression(std::unique_ptr<Object> left, Token oper,
                               std::unique_ptr<Object> right) {
   using namespace token_types;
-  long ret_val{};
   auto lhs{static_cast<Integer *>(left.get())->value};
   auto rhs{static_cast<Integer *>(right.get())->value};
   if (oper.is_type<Plus>()) {
-    ret_val = lhs + rhs;
+    return integer(lhs + rhs);
   } else if (oper.is_type<Minus>()) {
-    ret_val = lhs - rhs;
+    return integer(lhs - rhs);
   } else if (oper.is_type<Asterisk>()) {
-    ret_val = lhs * rhs;
+    return integer(lhs * rhs);
   } else if (oper.is_type<Slash>()) {
-    ret_val = lhs / rhs;
+    return integer(lhs / rhs);
+  } else if (oper.is_type<LT>()) {
+    return boolean(lhs < rhs);
+  } else if (oper.is_type<GT>()) {
+    return boolean(lhs > rhs);
+  } else if (oper.is_type<Eq>()) {
+    return boolean(lhs == rhs);
+  } else if (oper.is_type<NotEq>()) {
+    return boolean(lhs != rhs);
   } else {
     return null();
   }
-  return std::make_unique<Integer>(ret_val);
 }
 
 std::unique_ptr<Object> eval_infix_expression(std::unique_ptr<Object> left,
@@ -86,9 +96,16 @@ std::unique_ptr<Object> eval_infix_expression(std::unique_ptr<Object> left,
   if (left->type() == INTEGER_OBJ && right->type() == INTEGER_OBJ) {
     return eval_integer_infix_expression(std::move(left), oper,
                                          std::move(right));
-  } else {
-    return null();
+  } else if (left->type() == BOOLEAN_OBJ && right->type() == BOOLEAN_OBJ) {
+    auto lhs{static_cast<Boolean *>(left.get())->value};
+    auto rhs{static_cast<Boolean *>(right.get())->value};
+    if (oper.is_type<token_types::Eq>()) {
+      return boolean(lhs == rhs);
+    } else if (oper.is_type<token_types::NotEq>()) {
+      return boolean(lhs != rhs);
+    }
   }
+  return null();
 }
 
 std::unique_ptr<Object> eval(std::unique_ptr<Node> node) {
@@ -103,9 +120,9 @@ std::unique_ptr<Object> eval(std::unique_ptr<Node> node) {
     return eval_infix_expression(eval(std::move(e->left)), Token{e->oper},
                                  eval(std::move(e->right)));
   } else if (auto *e{dynamic_cast<IntegerLiteral *>(n)}) {
-    return std::make_unique<Integer>(e->value);
+    return integer(e->value);
   } else if (auto *b{dynamic_cast<BooleanLiteral *>(n)}) {
-    return std::make_unique<Boolean>(b->value ? _TRUE : _FALSE);
+    return boolean(b->value);
   } else {
     return nullptr;
   }
