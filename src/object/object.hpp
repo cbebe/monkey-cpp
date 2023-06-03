@@ -1,10 +1,12 @@
 #pragma once
+#include <memory>
 #include <string>
 
 enum ObjectType {
   INTEGER_OBJ,
   BOOLEAN_OBJ,
   NULL_OBJ,
+  RETURN_VALUE_OBJ,
 };
 
 class Object {
@@ -33,4 +35,12 @@ class Null : public Object {
 public:
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
+};
+
+class ReturnValue : public Object {
+public:
+  ReturnValue(std::unique_ptr<Object>);
+  virtual std::string inspect() const override;
+  virtual ObjectType type() const override;
+  std::unique_ptr<Object> value;
 };

@@ -53,7 +53,10 @@ all: monke_repl
 leak: monke_repl
 	@valgrind ./$<
 
-.PHONY: fmt lint $(TEST_CMDS) clean clean-lsp run leak
+test-leak:
+	@echo "==> TESTING MEMORY LEAKS"
+	@valgrind ./test_evaluator
+.PHONY: fmt lint $(TEST_CMDS) test-leak clean clean-lsp run leak
 # END Commands }}}
 
 # {{{ Executables

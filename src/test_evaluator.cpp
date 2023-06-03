@@ -7,5 +7,6 @@ int main() {
   TEST(test_eval_boolean_expression, pass);
   TEST(test_bang_operator, pass);
   TEST(test_if_else_expressions, pass);
+  TEST(test_return_statements, pass);
   return pass ? 0 : 1;
 }

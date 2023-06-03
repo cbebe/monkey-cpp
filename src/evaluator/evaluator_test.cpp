@@ -64,13 +64,15 @@ bool test_eval_integer_expression() {
       test<long>{"3 * (3 * 3) + 10", 37},
       test<long>{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
   }};
+  auto pass{true};
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
-      return false;
+      std::cout << test.input << std::endl;
+      pass &= false;
     }
   }
-  return true;
+  return pass;
 }
 
 bool test_eval_boolean_expression() {
@@ -159,6 +161,25 @@ bool test_if_else_expressions() {
       if (!result) {
         pass &= false;
       }
+    }
+  }
+  return pass;
+}
+
+bool test_return_statements() {
+  auto tests{std::vector{
+      test<long>{"return 10;", 10}, test<long>{"return 10; 9;", 10},
+      test<long>{"return 2 * 5; 9;", 10}, test<long>{"9; return 2 * 5; 9;", 10},
+      test<long>{
+          "if (10 > 1) { if (10 > 1) { return 10; } return 1; }",
+          10,
+      }}};
+  auto pass{true};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
     }
   }
   return pass;
