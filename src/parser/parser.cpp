@@ -3,8 +3,8 @@
 
 using namespace token_types;
 
-std::unique_ptr<Program> Parser::parse_program() {
-  auto program = std::make_unique<Program>();
+std::shared_ptr<Program> Parser::parse_program() {
+  auto program = std::make_shared<Program>();
   while (!cur_token.is_type<Eof>()) {
     auto statement{parse_statement()};
     if (statement) {
@@ -50,23 +50,23 @@ std::vector<Identifier> Parser::parse_function_parameters() {
   return params;
 }
 
-std::vector<std::unique_ptr<Expression>> Parser::parse_call_arguments() {
-  std::vector<std::unique_ptr<Expression>> args{};
+std::vector<std::shared_ptr<Expression>> Parser::parse_call_arguments() {
+  std::vector<std::shared_ptr<Expression>> args{};
   if (peek_token.is_type<RParen>()) {
     next_token();
     return args;
   }
   next_token();
-  args.push_back(std::unique_ptr<Expression>{parse_expression(LOWEST)});
+  args.push_back(std::shared_ptr<Expression>{parse_expression(LOWEST)});
 
   while (peek_token.is_type<Comma>()) {
     next_token();
     next_token();
-    args.push_back(std::unique_ptr<Expression>{parse_expression(LOWEST)});
+    args.push_back(std::shared_ptr<Expression>{parse_expression(LOWEST)});
   }
 
   if (!expect_peek<RParen>()) {
-    return std::vector<std::unique_ptr<Expression>>{};
+    return std::vector<std::shared_ptr<Expression>>{};
   }
 
   return args;
@@ -97,7 +97,7 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_infix(LParen{}, &Parser::parse_call_expression);
 };
 
-std::unique_ptr<Statement> Parser::parse_statement() {
+std::shared_ptr<Statement> Parser::parse_statement() {
   if (cur_token.is_type<Let>()) {
     return parse_let_statement();
   }
@@ -108,17 +108,17 @@ std::unique_ptr<Statement> Parser::parse_statement() {
   return parse_expression_statement();
 }
 
-std::unique_ptr<Statement> Parser::parse_expression_statement() {
+std::shared_ptr<Statement> Parser::parse_expression_statement() {
   auto expr{parse_expression(LOWEST)};
   if (peek_token.is_type<Semicolon>()) {
     next_token();
   }
 
-  return std::unique_ptr<Statement>{std::make_unique<ExpressionStatement>(
+  return std::shared_ptr<Statement>{std::make_shared<ExpressionStatement>(
       ExpressionStatement{std::move(expr)})};
 }
 
-std::unique_ptr<Statement> Parser::parse_return_statement() {
+std::shared_ptr<Statement> Parser::parse_return_statement() {
   next_token();
 
   auto ret_val{parse_expression(LOWEST)};
@@ -126,11 +126,10 @@ std::unique_ptr<Statement> Parser::parse_return_statement() {
     next_token();
   }
 
-  return std::unique_ptr<Statement>{
-      std::make_unique<ReturnStatement>(ReturnStatement{std::move(ret_val)})};
+  return std::shared_ptr<Statement>{std::make_shared<ReturnStatement>(ret_val)};
 }
 
-std::unique_ptr<Statement> Parser::parse_let_statement() {
+std::shared_ptr<Statement> Parser::parse_let_statement() {
   if (!expect_peek<Ident>()) {
     return nullptr;
   }
@@ -148,12 +147,12 @@ std::unique_ptr<Statement> Parser::parse_let_statement() {
     next_token();
   }
 
-  return std::make_unique<LetStatement>(
+  return std::make_shared<LetStatement>(
       LetStatement{identifier, std::move(value)});
 }
 
-std::unique_ptr<BlockStatement> Parser::parse_block_statement() {
-  auto block = std::make_unique<BlockStatement>();
+std::shared_ptr<BlockStatement> Parser::parse_block_statement() {
+  auto block = std::make_shared<BlockStatement>();
   next_token();
   while (!cur_token.is_type<RSquirly>() && !cur_token.is_type<Eof>()) {
     auto statement{parse_statement()};
@@ -179,7 +178,7 @@ Precedence get_precedence(TokenVariant v) {
 Precedence Parser::peek_predence() { return get_precedence(peek_token.value); }
 Precedence Parser::cur_predence() { return get_precedence(cur_token.value); }
 
-std::unique_ptr<Expression> Parser::parse_expression(Precedence precedence) {
+std::shared_ptr<Expression> Parser::parse_expression(Precedence precedence) {
   auto prefix{prefix_parse_fns[cur_token.value]};
   if (!prefix) {
     errors.push_back("no prefix parse function for " + cur_token.to_string() +
@@ -200,22 +199,22 @@ std::unique_ptr<Expression> Parser::parse_expression(Precedence precedence) {
   return left_exp;
 }
 
-std::unique_ptr<Expression> Parser::parse_identifier() {
-  return std::make_unique<Identifier>(
+std::shared_ptr<Expression> Parser::parse_identifier() {
+  return std::make_shared<Identifier>(
       Identifier{std::get<Ident>(cur_token.value).literal});
 }
 
-std::unique_ptr<Expression> Parser::parse_integer_literal() {
-  return std::make_unique<IntegerLiteral>(
+std::shared_ptr<Expression> Parser::parse_integer_literal() {
+  return std::make_shared<IntegerLiteral>(
       IntegerLiteral{std::get<Int>(cur_token.value).value});
 }
 
-std::unique_ptr<Expression> Parser::parse_boolean_literal() {
-  return std::make_unique<BooleanLiteral>(
+std::shared_ptr<Expression> Parser::parse_boolean_literal() {
+  return std::make_shared<BooleanLiteral>(
       BooleanLiteral{cur_token.is_type<True>()});
 }
 
-std::unique_ptr<Expression> Parser::parse_function_literal() {
+std::shared_ptr<Expression> Parser::parse_function_literal() {
   if (!expect_peek<LParen>()) {
     return nullptr;
   }
@@ -224,11 +223,11 @@ std::unique_ptr<Expression> Parser::parse_function_literal() {
     return nullptr;
   }
   auto body{parse_block_statement()};
-  return std::make_unique<FunctionLiteral>(
+  return std::make_shared<FunctionLiteral>(
       FunctionLiteral{params, std::move(body)});
 }
 
-std::unique_ptr<Expression> Parser::parse_if_expression() {
+std::shared_ptr<Expression> Parser::parse_if_expression() {
   if (!expect_peek<LParen>()) {
     return nullptr;
   }
@@ -241,7 +240,7 @@ std::unique_ptr<Expression> Parser::parse_if_expression() {
     return nullptr;
   }
   auto consequence{parse_block_statement()};
-  std::unique_ptr<BlockStatement> alternative{};
+  std::shared_ptr<BlockStatement> alternative{};
   if (peek_token.is_type<Else>()) {
     next_token();
     if (!expect_peek<LSquirly>()) {
@@ -250,11 +249,11 @@ std::unique_ptr<Expression> Parser::parse_if_expression() {
     alternative = parse_block_statement();
   }
 
-  return std::make_unique<IfExpression>(IfExpression{
+  return std::make_shared<IfExpression>(IfExpression{
       std::move(condition), std::move(consequence), std::move(alternative)});
 }
 
-std::unique_ptr<Expression> Parser::parse_grouped_expression() {
+std::shared_ptr<Expression> Parser::parse_grouped_expression() {
   next_token();
   auto expr{parse_expression(LOWEST)};
   if (!expect_peek<RParen>()) {
@@ -263,27 +262,27 @@ std::unique_ptr<Expression> Parser::parse_grouped_expression() {
   return expr;
 }
 
-std::unique_ptr<Expression> Parser::parse_prefix_expression() {
+std::shared_ptr<Expression> Parser::parse_prefix_expression() {
   auto oper{cur_token.value};
   next_token();
   auto right{parse_expression(PREFIX)};
-  return std::make_unique<PrefixExpression>(
+  return std::make_shared<PrefixExpression>(
       PrefixExpression{oper, std::move(right)});
 }
 
-std::unique_ptr<Expression>
-Parser::parse_infix_expression(std::unique_ptr<Expression> left) {
+std::shared_ptr<Expression>
+Parser::parse_infix_expression(std::shared_ptr<Expression> left) {
   auto oper{cur_token.value};
   auto precedence{cur_predence()};
   next_token();
   auto right{parse_expression(precedence)};
 
-  return std::make_unique<InfixExpression>(
+  return std::make_shared<InfixExpression>(
       InfixExpression{std::move(left), oper, std::move(right)});
 }
 
-std::unique_ptr<Expression>
-Parser::parse_call_expression(std::unique_ptr<Expression> caller) {
-  return std::unique_ptr<Expression>{std::make_unique<CallExpression>(
-      CallExpression{std::move(caller), parse_call_arguments()})};
+std::shared_ptr<Expression>
+Parser::parse_call_expression(std::shared_ptr<Expression> caller) {
+  return std::shared_ptr<Expression>{std::make_shared<CallExpression>(
+      std::move(caller), parse_call_arguments())};
 }

@@ -29,14 +29,14 @@ enum Precedence {
 
 class Parser;
 
-typedef std::unique_ptr<Expression> (Parser::*PrefixParseFn)(void);
-typedef std::unique_ptr<Expression> (Parser::*InfixParseFn)(
-    std::unique_ptr<Expression>);
+typedef std::shared_ptr<Expression> (Parser::*PrefixParseFn)(void);
+typedef std::shared_ptr<Expression> (Parser::*InfixParseFn)(
+    std::shared_ptr<Expression>);
 
 class Parser {
 public:
   Parser(Lexer);
-  std::unique_ptr<Program> parse_program();
+  std::shared_ptr<Program> parse_program();
   std::vector<std::string> errors{};
 
 private:
@@ -44,28 +44,28 @@ private:
   template <typename TokenType> bool expect_peek();
   template <typename TokenType> void peek_error(Token);
   // Statements
-  std::unique_ptr<Statement> parse_statement();
-  std::unique_ptr<Statement> parse_let_statement();
-  std::unique_ptr<Statement> parse_return_statement();
-  std::unique_ptr<Statement> parse_expression_statement();
-  std::unique_ptr<BlockStatement> parse_block_statement();
+  std::shared_ptr<Statement> parse_statement();
+  std::shared_ptr<Statement> parse_let_statement();
+  std::shared_ptr<Statement> parse_return_statement();
+  std::shared_ptr<Statement> parse_expression_statement();
+  std::shared_ptr<BlockStatement> parse_block_statement();
 
   // Expressions
-  std::unique_ptr<Expression> parse_expression(Precedence);
-  std::unique_ptr<Expression> parse_identifier();
-  std::unique_ptr<Expression> parse_integer_literal();
-  std::unique_ptr<Expression> parse_boolean_literal();
-  std::unique_ptr<Expression> parse_function_literal();
-  std::unique_ptr<Expression> parse_if_expression();
-  std::unique_ptr<Expression> parse_grouped_expression();
-  std::unique_ptr<Expression> parse_prefix_expression();
-  std::unique_ptr<Expression>
-      parse_infix_expression(std::unique_ptr<Expression>);
-  std::unique_ptr<Expression>
-      parse_call_expression(std::unique_ptr<Expression>);
+  std::shared_ptr<Expression> parse_expression(Precedence);
+  std::shared_ptr<Expression> parse_identifier();
+  std::shared_ptr<Expression> parse_integer_literal();
+  std::shared_ptr<Expression> parse_boolean_literal();
+  std::shared_ptr<Expression> parse_function_literal();
+  std::shared_ptr<Expression> parse_if_expression();
+  std::shared_ptr<Expression> parse_grouped_expression();
+  std::shared_ptr<Expression> parse_prefix_expression();
+  std::shared_ptr<Expression>
+      parse_infix_expression(std::shared_ptr<Expression>);
+  std::shared_ptr<Expression>
+      parse_call_expression(std::shared_ptr<Expression>);
 
   std::vector<Identifier> parse_function_parameters();
-  std::vector<std::unique_ptr<Expression>> parse_call_arguments();
+  std::vector<std::shared_ptr<Expression>> parse_call_arguments();
 
   void register_prefix(token_types::TokenVariant, PrefixParseFn);
   void register_infix(token_types::TokenVariant, InfixParseFn);

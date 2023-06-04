@@ -41,7 +41,7 @@ std::string to_string(ObjectType t) {
 } // namespace std
 
 Function::Function(std::vector<Identifier> params,
-                   std::unique_ptr<BlockStatement> body,
+                   std::shared_ptr<BlockStatement> body,
                    std::shared_ptr<Environment> env)
     : params(params), body(std::move(body)), env(std::move(env)) {}
 

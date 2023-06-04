@@ -152,8 +152,6 @@ bool test_if_else_expressions() {
     auto val{evaluated.get()};
     if (test.expected) {
       if (!h_test_literal<Integer>(val, *test.expected)) {
-        std::cout << test.input << std::endl;
-        std::cout << val->inspect() << std::endl;
         pass &= false;
       }
     } else {
@@ -290,17 +288,12 @@ bool test_function_application() {
   }};
 
   auto pass{true};
-  int i{0};
   for (auto test : tests) {
-    auto test_i{i++};
-    std::cout << test_i << std::endl;
-    std::cout << test.input << std::endl;
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
       std::cout << test.input << std::endl;
       pass &= false;
     }
-    std::cout << "PASS " << test_i << std::endl;
   }
   return pass;
 }

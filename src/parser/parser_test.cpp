@@ -5,17 +5,17 @@
 // TODO: This is a mess, use exceptions or something
 
 // {{{ "Helpers"
-std::unique_ptr<Program>
-h_check_errors(Parser &p, std::unique_ptr<Program> program, bool &pass);
-std::unique_ptr<Program> h_parser_pre_checks(Parser &p,
-                                             std::unique_ptr<Program> program,
+std::shared_ptr<Program>
+h_check_errors(Parser &p, std::shared_ptr<Program> program, bool &pass);
+std::shared_ptr<Program> h_parser_pre_checks(Parser &p,
+                                             std::shared_ptr<Program> program,
                                              size_t num_statements);
 Parser h_parse_input(std::string input);
 
 template <class StatementType>
-bool h_assert_type(std::unique_ptr<Statement> to_convert,
-                   std::unique_ptr<Statement> &var) {
-  var = std::unique_ptr<StatementType>(to_convert);
+bool h_assert_type(std::shared_ptr<Statement> to_convert,
+                   std::shared_ptr<Statement> &var) {
+  var = std::shared_ptr<StatementType>(to_convert);
   if (!var) {
     std::cout << "Failed test: not a " << typeid(StatementType).name()
               << std::endl;
@@ -25,25 +25,25 @@ bool h_assert_type(std::unique_ptr<Statement> to_convert,
 }
 
 template <typename To, typename From, typename Deleter>
-std::unique_ptr<To, Deleter>
-h_dynamic_unique_cast(std::unique_ptr<From, Deleter> &&p) {
+std::shared_ptr<To, Deleter>
+h_dynamic_unique_cast(std::shared_ptr<From, Deleter> &&p) {
   if (To *cast = dynamic_cast<To *>(p.get())) {
-    std::unique_ptr<To, Deleter> result(cast, std::move(p.get_deleter()));
+    std::shared_ptr<To, Deleter> result(cast, std::move(p.get_deleter()));
     (void)p.release();
     return result;
   }
-  return std::unique_ptr<To, Deleter>(nullptr);
+  return std::shared_ptr<To, Deleter>(nullptr);
 }
 
 template <typename To>
-using ExprSubtype = std::unique_ptr<To, std::default_delete<Expression>>;
+using ExprSubtype = std::shared_ptr<To, std::default_delete<Expression>>;
 
 template <typename To>
-using StatementSubtype = std::unique_ptr<To, std::default_delete<Statement>>;
+using StatementSubtype = std::shared_ptr<To, std::default_delete<Statement>>;
 
 template <typename To>
 StatementSubtype<To>
-h_assert_statement_type(std::unique_ptr<Statement> test_statement,
+h_assert_statement_type(std::shared_ptr<Statement> test_statement,
                         bool &result) {
   auto statement{h_dynamic_unique_cast<To>(std::move(test_statement))};
   if (!statement) {
@@ -55,7 +55,7 @@ h_assert_statement_type(std::unique_ptr<Statement> test_statement,
 }
 
 template <typename To>
-ExprSubtype<To> h_assert_expr_type(std::unique_ptr<Expression> test_expr,
+ExprSubtype<To> h_assert_expr_type(std::shared_ptr<Expression> test_expr,
                                    bool &result) {
   auto expr{h_dynamic_unique_cast<To>(std::move(test_expr))};
   if (!expr) {
@@ -77,7 +77,7 @@ bool h_assert_value(Expr &expr, T test_value) {
 }
 
 template <class Expr, typename T>
-bool h_test_literal_expr(std::unique_ptr<Expression> test_expr, T test_value) {
+bool h_test_literal_expr(std::shared_ptr<Expression> test_expr, T test_value) {
   auto result{true};
   ExprSubtype<Expr> expr{
       h_assert_expr_type<Expr>(std::move(test_expr), result)};
@@ -106,7 +106,7 @@ h_assert_expr_type_statement(StatementSubtype<ExpressionStatement> statement,
 
 template <typename To>
 ExprSubtype<To>
-h_get_single_expression_statement(std::unique_ptr<Statement> gen) {
+h_get_single_expression_statement(std::shared_ptr<Statement> gen) {
   bool result{true};
   auto statement{
       h_assert_statement_type<ExpressionStatement>(std::move(gen), result)};
@@ -120,7 +120,7 @@ h_get_single_expression_statement(std::unique_ptr<Statement> gen) {
 
 template <typename To, typename Value>
 ExprSubtype<To>
-h_get_single_expression_statement(std::unique_ptr<Statement> gen, Value value) {
+h_get_single_expression_statement(std::shared_ptr<Statement> gen, Value value) {
   auto expr{h_get_single_expression_statement<To>(gen)};
   if (!h_assert_value(expr, value)) {
     return nullptr;
@@ -130,7 +130,7 @@ h_get_single_expression_statement(std::unique_ptr<Statement> gen, Value value) {
 }
 
 template <typename To, typename Value>
-bool test_single_expression_statement(std::unique_ptr<Statement> gen,
+bool test_single_expression_statement(std::shared_ptr<Statement> gen,
                                       Value value) {
   return !!h_get_single_expression_statement<To>(gen, value);
 }
@@ -153,8 +153,8 @@ bool h_test_single_expression_program(std::string input, Value value) {
   return h_assert_value(expr, value);
 }
 
-std::unique_ptr<Program>
-h_check_errors(Parser &p, std::unique_ptr<Program> program, bool &pass) {
+std::shared_ptr<Program>
+h_check_errors(Parser &p, std::shared_ptr<Program> program, bool &pass) {
   if (p.errors.size() > 0) {
     std::cout << "parser error:" << std::endl;
     for (auto &e : p.errors) {
@@ -165,8 +165,8 @@ h_check_errors(Parser &p, std::unique_ptr<Program> program, bool &pass) {
   return program;
 }
 
-std::unique_ptr<Program> h_parser_pre_checks(Parser &p,
-                                             std::unique_ptr<Program> program,
+std::shared_ptr<Program> h_parser_pre_checks(Parser &p,
+                                             std::shared_ptr<Program> program,
                                              size_t num_statements) {
   bool pass{true};
   program = h_check_errors(p, std::move(program), pass);
@@ -294,7 +294,7 @@ bool h_do_infix_test_case(infix_test_case<T> test) {
 
 template <typename Expr>
 ExprSubtype<Expr>
-test_single_block_statement(std::unique_ptr<BlockStatement> block) {
+test_single_block_statement(std::shared_ptr<BlockStatement> block) {
   size_t length{block->statements.size()};
   if (length != 1) {
     std::cout << "Incorrect number of statements. got " << length << " want "

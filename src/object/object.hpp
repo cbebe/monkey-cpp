@@ -65,7 +65,7 @@ class Environment;
 
 class Function : public Object {
 public:
-  Function(std::vector<Identifier>, std::unique_ptr<BlockStatement>,
+  Function(std::vector<Identifier>, std::shared_ptr<BlockStatement>,
            std::shared_ptr<Environment>);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;

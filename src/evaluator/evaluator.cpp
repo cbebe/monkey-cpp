@@ -14,16 +14,15 @@ std::shared_ptr<Object> boolean(bool value) {
   return std::make_shared<Boolean>(value ? _TRUE : _FALSE);
 }
 std::shared_ptr<Object> return_value(std::shared_ptr<Object> value) {
-  return std::make_shared<ReturnValue>(std::move(value));
+  return std::make_shared<ReturnValue>(value);
 }
 std::shared_ptr<Object> error(std::string message) {
   return std::make_shared<Error>(message);
 }
 std::shared_ptr<Object> function(std::vector<Identifier> params,
-                                 std::unique_ptr<BlockStatement> body,
+                                 std::shared_ptr<BlockStatement> body,
                                  std::shared_ptr<Environment> env) {
-  return std::make_shared<Function>(std::move(params), std::move(body),
-                                    std::move(env));
+  return std::make_shared<Function>(params, body, env);
 }
 
 std::shared_ptr<Object> unknown_infix(ObjectType left, const Token &oper,
@@ -75,9 +74,9 @@ std::shared_ptr<Object> eval_prefix_expression(Token oper,
                                                std::shared_ptr<Object> right) {
   std::shared_ptr<Object> ret_val{};
   if (oper.is_type<token_types::Bang>()) {
-    ret_val = eval_bang_operator_expression(std::move(right));
+    ret_val = eval_bang_operator_expression(right);
   } else if (oper.is_type<token_types::Minus>()) {
-    ret_val = eval_minus_operator_expression(std::move(right));
+    ret_val = eval_minus_operator_expression(right);
   } else {
     ret_val = unknown_prefix(oper, right->type());
   }
@@ -116,8 +115,7 @@ std::shared_ptr<Object> eval_infix_expression(std::shared_ptr<Object> left,
                                               Token oper,
                                               std::shared_ptr<Object> right) {
   if (left->type() == INTEGER_OBJ && right->type() == INTEGER_OBJ) {
-    return eval_integer_infix_expression(std::move(left), oper,
-                                         std::move(right));
+    return eval_integer_infix_expression(left, oper, right);
   } else if (left->type() == BOOLEAN_OBJ && right->type() == BOOLEAN_OBJ) {
     auto lhs{static_cast<Boolean *>(left.get())->value};
     auto rhs{static_cast<Boolean *>(right.get())->value};
@@ -137,44 +135,44 @@ std::shared_ptr<Object> eval_infix_expression(std::shared_ptr<Object> left,
 }
 
 std::shared_ptr<Object>
-eval_if_expression(std::unique_ptr<Expression> condition,
-                   std::unique_ptr<BlockStatement> consequence,
-                   std::unique_ptr<BlockStatement> alternative,
+eval_if_expression(std::shared_ptr<Expression> condition,
+                   std::shared_ptr<BlockStatement> consequence,
+                   std::shared_ptr<BlockStatement> alternative,
                    std::shared_ptr<Environment> env) {
-  auto cond{eval(std::move(condition), env)};
+  auto cond{eval(condition, env)};
   if (is_error(cond.get())) {
     return cond;
   }
   if (is_truthy(cond.get())) {
-    return eval(std::move(consequence), env);
+    return eval(consequence, env);
   } else if (alternative != nullptr) {
-    return eval(std::move(alternative), env);
+    return eval(alternative, env);
   } else {
     return null();
   }
 }
 
 std::shared_ptr<Object>
-eval_program(std::vector<std::unique_ptr<Statement>> statements,
+eval_program(std::vector<std::shared_ptr<Statement>> statements,
              std::shared_ptr<Environment> env) {
   std::shared_ptr<Object> result{};
   for (auto &s : statements) {
-    result = eval(std::move(s), env);
+    result = eval(s, env);
     if (dynamic_cast<Error *>(result.get())) {
       return result;
     } else if (auto *ret_val{dynamic_cast<ReturnValue *>(result.get())}) {
-      return std::move(ret_val->value);
+      return ret_val->value;
     }
   }
   return result;
 }
 
 std::shared_ptr<Object>
-eval_block_statement(std::vector<std::unique_ptr<Statement>> statements,
+eval_block_statement(std::vector<std::shared_ptr<Statement>> statements,
                      std::shared_ptr<Environment> env) {
   std::shared_ptr<Object> result{};
   for (auto &s : statements) {
-    result = eval(std::move(s), env);
+    result = eval(s, env);
     if (result) {
       auto type{result->type()};
       if (type == RETURN_VALUE_OBJ || type == ERROR_OBJ) {
@@ -194,15 +192,15 @@ std::shared_ptr<Object> eval_identifier(const std::string &name,
   return val;
 }
 std::vector<std::shared_ptr<Object>>
-eval_expressions(std::vector<std::unique_ptr<Expression>> expressions,
+eval_expressions(std::vector<std::shared_ptr<Expression>> expressions,
                  std::shared_ptr<Environment> env) {
   std::vector<std::shared_ptr<Object>> args{};
   for (size_t i = 0; i < expressions.size(); i++) {
-    auto evaluated{eval(std::move(expressions[i]), env)};
+    auto evaluated{eval(expressions[i], env)};
     if (is_error(evaluated.get())) {
-      return std::vector<std::shared_ptr<Object>>{std::move(evaluated)};
+      return std::vector<std::shared_ptr<Object>>{evaluated};
     }
-    args.push_back(std::move(evaluated));
+    args.push_back(evaluated);
   }
   return args;
 }
@@ -210,9 +208,9 @@ eval_expressions(std::vector<std::unique_ptr<Expression>> expressions,
 std::shared_ptr<Environment>
 extend_function_env(std::shared_ptr<Function> func,
                     std::vector<std::shared_ptr<Object>> args) {
-  auto extended{std::make_shared<Environment>(std::move(func->env))};
+  auto extended{std::make_shared<Environment>(func->env)};
   for (size_t i = 0; i < args.size(); i++) {
-    extended->set(func->params[i].value, std::move(args[i]));
+    extended->set(func->params[i].value, args[i]);
   }
   return extended;
 }
@@ -232,73 +230,70 @@ apply_function(std::shared_ptr<Object> obj,
   }
   auto function{std::static_pointer_cast<Function>(obj)};
   auto extended_env{extend_function_env(function, args)};
-  std::cout << extended_env->inspect() << std::endl;
-  auto evaluated{eval_block_statement(std::move(function->body->statements),
-                                      extended_env)};
-  return unwrap_return_value(std::move(evaluated));
+  auto evaluated{
+      eval_block_statement(function->body->statements, extended_env)};
+  return unwrap_return_value(evaluated);
 }
 
 #include <iostream>
-std::shared_ptr<Object> eval(std::unique_ptr<Node> node,
+std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
                              std::shared_ptr<Environment> env) {
   Node *n = node.get();
   if (auto *p = dynamic_cast<Program *>(n)) {
-    return eval_program(std::move(p->statements), std::move(env));
+    return eval_program(p->statements, env);
   } else if (auto *e{dynamic_cast<ReturnStatement *>(n)}) {
-    auto val{eval(std::move(e->value), std::move(env))};
+    auto val{eval(e->value, env)};
     if (is_error(val.get())) {
       return val;
     }
-    return return_value(std::move(val));
+    return return_value(val);
   } else if (auto *e{dynamic_cast<ExpressionStatement *>(n)}) {
-    return eval(std::move(e->value), std::move(env));
+    return eval(e->value, env);
   } else if (auto *e{dynamic_cast<LetStatement *>(n)}) {
-    auto val{eval(std::move(e->value), env)};
+    auto val{eval(e->value, env)};
     if (is_error(val.get())) {
       return val;
     }
-    return env->set(e->identifier.value, std::move(val));
+    return env->set(e->identifier.value, val);
   } else if (auto *b{dynamic_cast<BlockStatement *>(n)}) {
-    return eval_block_statement(std::move(b->statements), std::move(env));
+    return eval_block_statement(b->statements, env);
   } else if (auto *i{dynamic_cast<IfExpression *>(n)}) {
-    return eval_if_expression(std::move(i->condition),
-                              std::move(i->consequence),
-                              std::move(i->alternative), std::move(env));
+    return eval_if_expression(i->condition, i->consequence, i->alternative,
+                              env);
   } else if (auto *e{dynamic_cast<PrefixExpression *>(n)}) {
-    auto val{eval(std::move(e->right), env)};
+    auto val{eval(e->right, env)};
     if (is_error(val.get())) {
       return val;
     }
-    return eval_prefix_expression(Token{e->oper}, std::move(val));
+    return eval_prefix_expression(Token{e->oper}, val);
   } else if (auto *e{dynamic_cast<CallExpression *>(n)}) {
-    auto val{eval(std::move(e->function), env)};
+    auto val{eval(e->function, env)};
     if (is_error(val.get())) {
       return val;
     }
-    auto args{eval_expressions(std::move(e->arguments), std::move(env))};
+    auto args{eval_expressions(e->arguments, env)};
     if (args.size() == 1 && is_error(args[0].get())) {
       return args[0];
     }
-    return apply_function(std::move(val), std::move(args));
+    return apply_function(val, args);
   } else if (auto *e{dynamic_cast<InfixExpression *>(n)}) {
-    auto left{eval(std::move(e->left), env)};
+    auto left{eval(e->left, env)};
     if (is_error(left.get())) {
       return left;
     }
-    auto right{eval(std::move(e->right), std::move(env))};
+    auto right{eval(e->right, env)};
     if (is_error(right.get())) {
       return right;
     }
-    return eval_infix_expression(std::move(left), Token{e->oper},
-                                 std::move(right));
+    return eval_infix_expression(left, Token{e->oper}, right);
   } else if (auto *f{dynamic_cast<FunctionLiteral *>(n)}) {
-    return function(std::move(f->params), std::move(f->body), std::move(env));
+    return function(f->params, f->body, env);
   } else if (auto *e{dynamic_cast<IntegerLiteral *>(n)}) {
     return integer(e->value);
   } else if (auto *b{dynamic_cast<BooleanLiteral *>(n)}) {
     return boolean(b->value);
   } else if (auto *b{dynamic_cast<Identifier *>(n)}) {
-    return eval_identifier(b->value, std::move(env));
+    return eval_identifier(b->value, env);
   } else {
     return nullptr;
   }

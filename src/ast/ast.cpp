@@ -42,7 +42,7 @@ std::string BooleanLiteral::to_string() const {
 
 // {{{ PrefixExpression
 PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
-                                   std::unique_ptr<Expression> e)
+                                   std::shared_ptr<Expression> e)
     : oper(prefix), right(std::move(e)) {}
 std::string PrefixExpression::token_literal() const { return "PREFIX"; }
 std::string PrefixExpression::to_string() const {
@@ -51,9 +51,9 @@ std::string PrefixExpression::to_string() const {
 // }}}
 
 // {{{ InfixExpression
-InfixExpression::InfixExpression(std::unique_ptr<Expression> left,
+InfixExpression::InfixExpression(std::shared_ptr<Expression> left,
                                  token_types::TokenVariant prefix,
-                                 std::unique_ptr<Expression> right)
+                                 std::shared_ptr<Expression> right)
     : left(std::move(left)), oper(prefix), right(std::move(right)) {}
 std::string InfixExpression::token_literal() const { return "INFIX"; }
 std::string InfixExpression::to_string() const {
@@ -64,8 +64,8 @@ std::string InfixExpression::to_string() const {
 
 // {{{ CallExpression
 CallExpression::CallExpression(
-    std::unique_ptr<Expression> function,
-    std::vector<std::unique_ptr<Expression>> &&arguments)
+    std::shared_ptr<Expression> function,
+    std::vector<std::shared_ptr<Expression>> &&arguments)
     : function(std::move(function)), arguments(std::move(arguments)) {}
 std::string CallExpression::token_literal() const { return "CALL"; }
 std::string CallExpression::to_string() const {
@@ -83,9 +83,9 @@ std::string CallExpression::to_string() const {
 // }}}
 
 // {{{ IfExpression
-IfExpression::IfExpression(std::unique_ptr<Expression> condition,
-                           std::unique_ptr<BlockStatement> consequence,
-                           std::unique_ptr<BlockStatement> alternative)
+IfExpression::IfExpression(std::shared_ptr<Expression> condition,
+                           std::shared_ptr<BlockStatement> consequence,
+                           std::shared_ptr<BlockStatement> alternative)
     : condition(std::move(condition)), consequence(std::move(consequence)),
       alternative(std::move(alternative)) {}
 std::string IfExpression::token_literal() const { return "if"; }
@@ -96,7 +96,7 @@ std::string IfExpression::to_string() const {
 // }}}
 
 // {{{ LetStatement
-LetStatement::LetStatement(Identifier i, std::unique_ptr<Expression> v)
+LetStatement::LetStatement(Identifier i, std::shared_ptr<Expression> v)
     : identifier(i), value(std::move(v)) {}
 std::string LetStatement::token_literal() const { return "let"; }
 std::string LetStatement::to_string() const {
@@ -106,7 +106,7 @@ std::string LetStatement::to_string() const {
 // }}}
 
 // {{{ ReturnStatement
-ReturnStatement::ReturnStatement(std::unique_ptr<Expression> v)
+ReturnStatement::ReturnStatement(std::shared_ptr<Expression> v)
     : value(std::move(v)) {}
 std::string ReturnStatement::token_literal() const { return "RETURN"; }
 std::string ReturnStatement::to_string() const {
@@ -115,7 +115,7 @@ std::string ReturnStatement::to_string() const {
 // }}}
 
 // {{{ ExpressionStatement
-ExpressionStatement::ExpressionStatement(std::unique_ptr<Expression> v)
+ExpressionStatement::ExpressionStatement(std::shared_ptr<Expression> v)
     : value(std::move(v)) {}
 std::string ExpressionStatement::token_literal() const { return "EXPRESSION"; }
 std::string ExpressionStatement::to_string() const {
@@ -136,7 +136,7 @@ std::string BlockStatement::to_string() const {
 
 // {{{ FunctionLiteral
 FunctionLiteral::FunctionLiteral(std::vector<Identifier> params,
-                                 std::unique_ptr<BlockStatement> body)
+                                 std::shared_ptr<BlockStatement> body)
     : params(params), body(std::move(body)) {}
 std::string FunctionLiteral::token_literal() const { return "FUNCTION"; }
 std::string FunctionLiteral::to_string() const {
