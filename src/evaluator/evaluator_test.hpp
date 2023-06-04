@@ -6,3 +6,4 @@ bool test_return_statements();
 bool test_error_handling();
 bool test_let_statements();
 bool test_function_object();
+bool test_function_application();

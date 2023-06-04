@@ -1,6 +1,6 @@
 #include "evaluator.hpp"
-#include <cassert>
 #include <functional>
+#include <iostream>
 
 const Boolean _TRUE = Boolean{true};
 const Boolean _FALSE = Boolean{false};
@@ -73,7 +73,7 @@ eval_minus_operator_expression(std::shared_ptr<Object> expr) {
 
 std::shared_ptr<Object> eval_prefix_expression(Token oper,
                                                std::shared_ptr<Object> right) {
-  std::shared_ptr<Object> ret_val{nullptr};
+  std::shared_ptr<Object> ret_val{};
   if (oper.is_type<token_types::Bang>()) {
     ret_val = eval_bang_operator_expression(std::move(right));
   } else if (oper.is_type<token_types::Minus>()) {
@@ -157,7 +157,7 @@ eval_if_expression(std::unique_ptr<Expression> condition,
 std::shared_ptr<Object>
 eval_program(std::vector<std::unique_ptr<Statement>> statements,
              std::shared_ptr<Environment> env) {
-  std::shared_ptr<Object> result{nullptr};
+  std::shared_ptr<Object> result{};
   for (auto &s : statements) {
     result = eval(std::move(s), env);
     if (dynamic_cast<Error *>(result.get())) {
@@ -172,10 +172,10 @@ eval_program(std::vector<std::unique_ptr<Statement>> statements,
 std::shared_ptr<Object>
 eval_block_statement(std::vector<std::unique_ptr<Statement>> statements,
                      std::shared_ptr<Environment> env) {
-  std::shared_ptr<Object> result{nullptr};
+  std::shared_ptr<Object> result{};
   for (auto &s : statements) {
     result = eval(std::move(s), env);
-    if (result != nullptr) {
+    if (result) {
       auto type{result->type()};
       if (type == RETURN_VALUE_OBJ || type == ERROR_OBJ) {
         return result;
@@ -193,7 +193,52 @@ std::shared_ptr<Object> eval_identifier(const std::string &name,
   }
   return val;
 }
+std::vector<std::shared_ptr<Object>>
+eval_expressions(std::vector<std::unique_ptr<Expression>> expressions,
+                 std::shared_ptr<Environment> env) {
+  std::vector<std::shared_ptr<Object>> args{};
+  for (size_t i = 0; i < expressions.size(); i++) {
+    auto evaluated{eval(std::move(expressions[i]), env)};
+    if (is_error(evaluated.get())) {
+      return std::vector<std::shared_ptr<Object>>{std::move(evaluated)};
+    }
+    args.push_back(std::move(evaluated));
+  }
+  return args;
+}
 
+std::shared_ptr<Environment>
+extend_function_env(std::shared_ptr<Function> func,
+                    std::vector<std::shared_ptr<Object>> args) {
+  auto extended{std::make_shared<Environment>(std::move(func->env))};
+  for (size_t i = 0; i < args.size(); i++) {
+    extended->set(func->params[i].value, std::move(args[i]));
+  }
+  return extended;
+}
+
+std::shared_ptr<Object> unwrap_return_value(std::shared_ptr<Object> obj) {
+  if (obj->type() == RETURN_VALUE_OBJ) {
+    return std::static_pointer_cast<ReturnValue>(obj)->value;
+  }
+  return obj;
+}
+
+std::shared_ptr<Object>
+apply_function(std::shared_ptr<Object> obj,
+               std::vector<std::shared_ptr<Object>> args) {
+  if (obj->type() != FUNCTION_OBJ) {
+    return error("not a function: " + std::to_string(obj->type()));
+  }
+  auto function{std::static_pointer_cast<Function>(obj)};
+  auto extended_env{extend_function_env(function, args)};
+  std::cout << extended_env->inspect() << std::endl;
+  auto evaluated{eval_block_statement(std::move(function->body->statements),
+                                      extended_env)};
+  return unwrap_return_value(std::move(evaluated));
+}
+
+#include <iostream>
 std::shared_ptr<Object> eval(std::unique_ptr<Node> node,
                              std::shared_ptr<Environment> env) {
   Node *n = node.get();
@@ -225,6 +270,16 @@ std::shared_ptr<Object> eval(std::unique_ptr<Node> node,
       return val;
     }
     return eval_prefix_expression(Token{e->oper}, std::move(val));
+  } else if (auto *e{dynamic_cast<CallExpression *>(n)}) {
+    auto val{eval(std::move(e->function), env)};
+    if (is_error(val.get())) {
+      return val;
+    }
+    auto args{eval_expressions(std::move(e->arguments), std::move(env))};
+    if (args.size() == 1 && is_error(args[0].get())) {
+      return args[0];
+    }
+    return apply_function(std::move(val), std::move(args));
   } else if (auto *e{dynamic_cast<InfixExpression *>(n)}) {
     auto left{eval(std::move(e->left), env)};
     if (is_error(left.get())) {

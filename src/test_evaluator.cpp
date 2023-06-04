@@ -11,5 +11,6 @@ int main() {
   TEST(test_error_handling, pass);
   TEST(test_let_statements, pass);
   TEST(test_function_object, pass);
+  TEST(test_function_application, pass);
   return pass ? 0 : 1;
 }

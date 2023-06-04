@@ -70,6 +70,6 @@ public:
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
   std::vector<Identifier> params;
-  std::unique_ptr<BlockStatement> body;
+  std::shared_ptr<BlockStatement> body;
   std::shared_ptr<Environment> env;
 };

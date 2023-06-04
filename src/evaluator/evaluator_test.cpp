@@ -278,3 +278,29 @@ bool test_function_object() {
 
   return true;
 }
+
+bool test_function_application() {
+  auto tests{std::vector{
+      test<long>{"let identity = fn(x) { x; }; identity(5);", 5},
+      test<long>{"let identity = fn(x) { return x; }; identity(5);", 5},
+      test<long>{"let double = fn(x) { x * 2; }; double(5);", 10},
+      test<long>{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+      test<long>{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+      test<long>{"fn(x) { x; }(5)", 5},
+  }};
+
+  auto pass{true};
+  int i{0};
+  for (auto test : tests) {
+    auto test_i{i++};
+    std::cout << test_i << std::endl;
+    std::cout << test.input << std::endl;
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+    std::cout << "PASS " << test_i << std::endl;
+  }
+  return pass;
+}
