@@ -70,12 +70,12 @@ eval_minus_operator_expression(std::shared_ptr<Object> expr) {
   }
 }
 
-std::shared_ptr<Object> eval_prefix_expression(Token oper,
+std::shared_ptr<Object> eval_prefix_expression(token_types::TokenVariant oper,
                                                std::shared_ptr<Object> right) {
   std::shared_ptr<Object> ret_val{};
-  if (oper.is_type<token_types::Bang>()) {
+  if (is_type<token_types::Bang>(oper)) {
     ret_val = eval_bang_operator_expression(right);
-  } else if (oper.is_type<token_types::Minus>()) {
+  } else if (is_type<token_types::Minus>(oper)) {
     ret_val = eval_minus_operator_expression(right);
   } else {
     ret_val = unknown_prefix(oper, right->type());
@@ -85,26 +85,27 @@ std::shared_ptr<Object> eval_prefix_expression(Token oper,
 }
 
 std::shared_ptr<Object>
-eval_integer_infix_expression(std::shared_ptr<Object> left, Token oper,
+eval_integer_infix_expression(std::shared_ptr<Object> left,
+                              token_types::TokenVariant oper,
                               std::shared_ptr<Object> right) {
   using namespace token_types;
   auto lhs{static_cast<Integer *>(left.get())->value};
   auto rhs{static_cast<Integer *>(right.get())->value};
-  if (oper.is_type<Plus>()) {
+  if (is_type<Plus>(oper)) {
     return integer(lhs + rhs);
-  } else if (oper.is_type<Minus>()) {
+  } else if (is_type<Minus>(oper)) {
     return integer(lhs - rhs);
-  } else if (oper.is_type<Asterisk>()) {
+  } else if (is_type<Asterisk>(oper)) {
     return integer(lhs * rhs);
-  } else if (oper.is_type<Slash>()) {
+  } else if (is_type<Slash>(oper)) {
     return integer(lhs / rhs);
-  } else if (oper.is_type<LT>()) {
+  } else if (is_type<LT>(oper)) {
     return boolean(lhs < rhs);
-  } else if (oper.is_type<GT>()) {
+  } else if (is_type<GT>(oper)) {
     return boolean(lhs > rhs);
-  } else if (oper.is_type<Eq>()) {
+  } else if (is_type<Eq>(oper)) {
     return boolean(lhs == rhs);
-  } else if (oper.is_type<NotEq>()) {
+  } else if (is_type<NotEq>(oper)) {
     return boolean(lhs != rhs);
   } else {
     return unknown_infix(left->type(), oper, right->type());
@@ -112,23 +113,23 @@ eval_integer_infix_expression(std::shared_ptr<Object> left, Token oper,
 }
 
 std::shared_ptr<Object> eval_infix_expression(std::shared_ptr<Object> left,
-                                              Token oper,
+                                              token_types::TokenVariant oper,
                                               std::shared_ptr<Object> right) {
   if (left->type() == INTEGER_OBJ && right->type() == INTEGER_OBJ) {
     return eval_integer_infix_expression(left, oper, right);
   } else if (left->type() == BOOLEAN_OBJ && right->type() == BOOLEAN_OBJ) {
     auto lhs{static_cast<Boolean *>(left.get())->value};
     auto rhs{static_cast<Boolean *>(right.get())->value};
-    if (oper.is_type<token_types::Eq>()) {
+    if (is_type<token_types::Eq>(oper)) {
       return boolean(lhs == rhs);
-    } else if (oper.is_type<token_types::NotEq>()) {
+    } else if (is_type<token_types::NotEq>(oper)) {
       return boolean(lhs != rhs);
     } else {
       return unknown_infix(left->type(), oper, right->type());
     }
   } else if (left->type() != right->type()) {
     return error("type mismatch: " + std::to_string(left->type()) + " " +
-                 oper.literal() + " " + std::to_string(right->type()));
+                 type_to_string(oper) + " " + std::to_string(right->type()));
   } else {
     return unknown_infix(left->type(), oper, right->type());
   }
@@ -265,7 +266,7 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
     if (is_error(val.get())) {
       return val;
     }
-    return eval_prefix_expression(Token{e->oper}, val);
+    return eval_prefix_expression(e->oper, val);
   } else if (auto *e{dynamic_cast<CallExpression *>(n)}) {
     auto val{eval(e->function, env)};
     if (is_error(val.get())) {
@@ -285,7 +286,7 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
     if (is_error(right.get())) {
       return right;
     }
-    return eval_infix_expression(left, Token{e->oper}, right);
+    return eval_infix_expression(left, e->oper, right);
   } else if (auto *f{dynamic_cast<FunctionLiteral *>(n)}) {
     return function(f->params, f->body, env);
   } else if (auto *e{dynamic_cast<IntegerLiteral *>(n)}) {

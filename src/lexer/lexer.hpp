@@ -12,6 +12,7 @@ private:
   long read_number();
   void skip_whitespace();
   std::string read_identifier();
+  std::string read_string();
   std::string input;
   size_t position{0};
   size_t read_position{0};

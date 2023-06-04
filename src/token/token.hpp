@@ -21,6 +21,10 @@ struct Int {
   long value;
   bool operator==(const Int &) const { return true; }
 };
+struct String {
+  std::string value;
+  bool operator==(const String &) const { return true; }
+};
 
 // Operators
 TOKEN_TYPE(Assign);
@@ -54,10 +58,22 @@ TOKEN_TYPE(Else);
 TOKEN_TYPE(Return);
 
 using TokenVariant =
-    std::variant<Illegal, Eof, Ident, Int, Assign, Plus, Minus, Bang, Asterisk,
-                 Slash, LT, GT, Eq, NotEq, Comma, Semicolon, LParen, RParen,
-                 LSquirly, RSquirly, Function, Let, True, False, If, Else,
-                 Return>;
+    std::variant<Illegal, Eof, Ident, Int, String, Assign, Plus, Minus, Bang,
+                 Asterisk, Slash, LT, GT, Eq, NotEq, Comma, Semicolon, LParen,
+                 RParen, LSquirly, RSquirly, Function, Let, True, False, If,
+                 Else, Return>;
+
+template <typename TokenType> bool is_type(TokenVariant t) {
+  return std::visit(
+      [](auto &&arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, TokenType>) {
+          return true;
+        }
+        return false;
+      },
+      t);
+}
 } // namespace token_types
 
 std::string type_to_string(token_types::TokenVariant);
@@ -68,15 +84,7 @@ struct Token {
   Token(token_types::TokenVariant v) : value{v} {}
   std::string to_string() const;
   template <typename TokenType> bool is_type() const {
-    return std::visit(
-        [](auto &&arg) {
-          using T = std::decay_t<decltype(arg)>;
-          if constexpr (std::is_same_v<T, TokenType>) {
-            return true;
-          }
-          return false;
-        },
-        value);
+    return token_types::is_type<TokenType>(value);
   }
   std::string literal() const;
 };
@@ -153,6 +161,8 @@ template <typename T> std::string type_string() {
     ret_val = "IDENT";
   else if constexpr (std::is_same_v<T, Int>)
     ret_val = "INT";
+  else if constexpr (std::is_same_v<T, String>)
+    ret_val = "STRING";
   else if constexpr (std::is_same_v<T, Assign>)
     ret_val = "ASSIGN";
   else if constexpr (std::is_same_v<T, Plus>)

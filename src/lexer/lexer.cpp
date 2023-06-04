@@ -56,6 +56,7 @@ Token Lexer::next_token() {
     break;
   }
   // clang-format off
+  case '"': tok = new_token(String{read_string()}); break;
   case ';': tok = new_token(Semicolon{}); break;
   case '(': tok = new_token(LParen{}); break;
   case ')': tok = new_token(RParen{}); break;
@@ -81,6 +82,17 @@ Token Lexer::next_token() {
   }
   read_char();
   return tok;
+}
+
+std::string Lexer::read_string() {
+  auto start{position + 1};
+  while (true) {
+    read_char();
+    if (ch == '"' || ch == 0) {
+      break;
+    }
+  }
+  return input.substr(start, position - start);
 }
 
 std::string Lexer::read_identifier() {

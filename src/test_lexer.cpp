@@ -4,8 +4,6 @@
 
 int main() {
   bool pass{true};
-  TEST(first_next_token_test, pass);
-  TEST(second_next_token_test, pass);
-  TEST(third_next_token_test, pass);
+  TEST(test_next_token, pass);
   return pass ? 0 : 1;
 }
