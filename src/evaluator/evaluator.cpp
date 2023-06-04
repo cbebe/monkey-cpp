@@ -25,14 +25,17 @@ std::shared_ptr<Object> function(std::vector<Identifier> params,
   return std::make_shared<Function>(params, body, env);
 }
 
-std::shared_ptr<Object> unknown_infix(ObjectType left, const Token &oper,
+std::shared_ptr<Object> unknown_infix(ObjectType left,
+                                      token_types::TokenVariant oper,
                                       ObjectType right) {
   return error("unknown operator: " + std::to_string(left) + " " +
-               oper.literal() + " " + std::to_string(right));
+               literal_string(oper) + " " + std::to_string(right));
 }
 
-std::shared_ptr<Object> unknown_prefix(const Token &oper, ObjectType right) {
-  return error("unknown operator: " + oper.literal() + std::to_string(right));
+std::shared_ptr<Object> unknown_prefix(token_types::TokenVariant oper,
+                                       ObjectType right) {
+  return error("unknown operator: " + literal_string(oper) +
+               std::to_string(right));
 }
 
 bool is_truthy(Object *obj) {
@@ -66,7 +69,7 @@ eval_minus_operator_expression(std::shared_ptr<Object> expr) {
   if (obj->type() == INTEGER_OBJ) {
     return integer(-(static_cast<Integer *>(obj)->value));
   } else {
-    return unknown_prefix(Token{token_types::Minus{}}, obj->type());
+    return unknown_prefix(token_types::Minus{}, obj->type());
   }
 }
 
@@ -129,7 +132,7 @@ std::shared_ptr<Object> eval_infix_expression(std::shared_ptr<Object> left,
     }
   } else if (left->type() != right->type()) {
     return error("type mismatch: " + std::to_string(left->type()) + " " +
-                 type_to_string(oper) + " " + std::to_string(right->type()));
+                 literal_string(oper) + " " + std::to_string(right->type()));
   } else {
     return unknown_infix(left->type(), oper, right->type());
   }
