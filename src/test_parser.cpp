@@ -10,6 +10,7 @@ bool test_return_statements();
 bool test_identifier_expression();
 bool test_integer_literal_expression();
 bool test_boolean_literal_expression();
+bool test_string_literal_expression();
 bool test_prefix_expression();
 bool test_infix_expression();
 bool test_operator_precedence();
@@ -29,6 +30,7 @@ int main() {
   TEST(test_identifier_expression, pass);
   TEST(test_integer_literal_expression, pass);
   TEST(test_boolean_literal_expression, pass);
+  TEST(test_string_literal_expression, pass);
   TEST(test_prefix_expression, pass);
   TEST(test_infix_expression, pass);
   TEST(test_operator_precedence, pass);
@@ -383,6 +385,11 @@ bool test_integer_literal_expression() {
 
 bool test_boolean_literal_expression() {
   return h_test_single_expression_program<BooleanLiteral>("true;", true);
+}
+
+bool test_string_literal_expression() {
+  return h_test_single_expression_program<StringLiteral>("\"hello world\";",
+                                                         "hello world");
 }
 
 bool test_prefix_expression() {

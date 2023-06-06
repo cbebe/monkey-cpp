@@ -40,6 +40,12 @@ std::string BooleanLiteral::to_string() const {
 }
 // }}}
 
+// {{{ StringLiteral
+StringLiteral::StringLiteral(const std::string &v) : value(v) {}
+std::string StringLiteral::token_literal() const { return value; }
+std::string StringLiteral::to_string() const { return value; }
+// }}}
+
 // {{{ PrefixExpression
 PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
                                    std::shared_ptr<Expression> e)
