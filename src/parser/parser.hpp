@@ -56,6 +56,7 @@ private:
   std::shared_ptr<Expression> parse_integer_literal();
   std::shared_ptr<Expression> parse_boolean_literal();
   std::shared_ptr<Expression> parse_string_literal();
+  std::shared_ptr<Expression> parse_array_literal();
   std::shared_ptr<Expression> parse_function_literal();
   std::shared_ptr<Expression> parse_if_expression();
   std::shared_ptr<Expression> parse_grouped_expression();
@@ -66,7 +67,8 @@ private:
       parse_call_expression(std::shared_ptr<Expression>);
 
   std::vector<Identifier> parse_function_parameters();
-  std::vector<std::shared_ptr<Expression>> parse_call_arguments();
+  template <typename T>
+  std::vector<std::shared_ptr<Expression>> parse_expression_list();
 
   void register_prefix(token_types::TokenVariant, PrefixParseFn);
   void register_infix(token_types::TokenVariant, InfixParseFn);

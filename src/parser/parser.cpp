@@ -13,6 +13,7 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_prefix(True{}, &Parser::parse_boolean_literal);
   register_prefix(False{}, &Parser::parse_boolean_literal);
   register_prefix(String{}, &Parser::parse_string_literal);
+  register_prefix(LSquarely{}, &Parser::parse_array_literal);
   register_prefix(Function{}, &Parser::parse_function_literal);
   register_prefix(Bang{}, &Parser::parse_prefix_expression);
   register_prefix(Minus{}, &Parser::parse_prefix_expression);
@@ -76,7 +77,8 @@ std::vector<Identifier> Parser::parse_function_parameters() {
   return params;
 }
 
-std::vector<std::shared_ptr<Expression>> Parser::parse_call_arguments() {
+template <typename T>
+std::vector<std::shared_ptr<Expression>> Parser::parse_expression_list() {
   std::vector<std::shared_ptr<Expression>> args{};
   if (peek_token.is_type<RParen>()) {
     next_token();
@@ -91,7 +93,7 @@ std::vector<std::shared_ptr<Expression>> Parser::parse_call_arguments() {
     args.push_back(parse_expression(LOWEST));
   }
 
-  if (!expect_peek<RParen>()) {
+  if (!expect_peek<T>()) {
     return std::vector<std::shared_ptr<Expression>>{};
   }
 
@@ -215,6 +217,10 @@ std::shared_ptr<Expression> Parser::parse_string_literal() {
       std::get<String>(cur_token.value).value);
 }
 
+std::shared_ptr<Expression> Parser::parse_array_literal() {
+  return std::make_shared<ArrayLiteral>(parse_expression_list<RSquarely>());
+}
+
 std::shared_ptr<Expression> Parser::parse_function_literal() {
   if (!expect_peek<LParen>()) {
     return nullptr;
@@ -283,5 +289,5 @@ Parser::parse_infix_expression(std::shared_ptr<Expression> left) {
 std::shared_ptr<Expression>
 Parser::parse_call_expression(std::shared_ptr<Expression> caller) {
   return std::make_shared<CallExpression>(std::move(caller),
-                                          parse_call_arguments());
+                                          parse_expression_list<RParen>());
 }
