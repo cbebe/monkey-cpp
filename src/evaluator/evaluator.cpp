@@ -1,31 +1,28 @@
 #include "evaluator.hpp"
+#include "builtins.hpp"
 #include <functional>
 #include <iostream>
 
-const Boolean _TRUE = Boolean{true};
-const Boolean _FALSE = Boolean{false};
-const Null _NULL = Null{};
-
-std::shared_ptr<Object> null() { return std::make_shared<Null>(_NULL); }
+std::shared_ptr<Object> null() { return std::make_unique<Null>(_NULL); }
 std::shared_ptr<Object> integer(long value) {
-  return std::make_shared<Integer>(value);
+  return std::make_unique<Integer>(value);
 }
 std::shared_ptr<Object> boolean(bool value) {
-  return std::make_shared<Boolean>(value ? _TRUE : _FALSE);
+  return std::make_unique<Boolean>(value ? _TRUE : _FALSE);
 }
 std::shared_ptr<Object> string(const std::string &value) {
-  return std::make_shared<String>(value);
+  return std::make_unique<String>(value);
 }
 std::shared_ptr<Object> return_value(std::shared_ptr<Object> value) {
-  return std::make_shared<ReturnValue>(value);
+  return std::make_unique<ReturnValue>(value);
 }
 std::shared_ptr<Object> error(std::string message) {
-  return std::make_shared<Error>(message);
+  return std::make_unique<Error>(message);
 }
 std::shared_ptr<Object> function(std::vector<Identifier> params,
                                  std::shared_ptr<BlockStatement> body,
                                  std::shared_ptr<Environment> env) {
-  return std::make_shared<Function>(params, body, env);
+  return std::make_unique<Function>(params, body, env);
 }
 
 std::shared_ptr<Object> unknown_infix(ObjectType left,
@@ -216,10 +213,13 @@ eval_block_statement(std::vector<std::shared_ptr<Statement>> statements,
 std::shared_ptr<Object> eval_identifier(const std::string &name,
                                         std::shared_ptr<Environment> env) {
   auto val{env->get(name)};
-  if (!val) {
-    return error("identifier not found: " + name);
+  if (val) {
+    return val;
   }
-  return val;
+  if (builtins.contains(name)) {
+    return builtins[name];
+  }
+  return error("identifier not found: " + name);
 }
 std::vector<std::shared_ptr<Object>>
 eval_expressions(std::vector<std::shared_ptr<Expression>> expressions,
@@ -255,14 +255,18 @@ std::shared_ptr<Object> unwrap_return_value(std::shared_ptr<Object> obj) {
 std::shared_ptr<Object>
 apply_function(std::shared_ptr<Object> obj,
                std::vector<std::shared_ptr<Object>> args) {
-  if (obj->type() != FUNCTION_OBJ) {
-    return error("not a function: " + std::to_string(obj->type()));
+  if (obj->type() == FUNCTION_OBJ) {
+    auto function{std::static_pointer_cast<Function>(obj)};
+    auto extended_env{extend_function_env(function, args)};
+    auto evaluated{
+        eval_block_statement(function->body->statements, extended_env)};
+    return unwrap_return_value(evaluated);
+  } else if (obj->type() == BUILTIN_OBJ) {
+    auto function{std::static_pointer_cast<Builtin>(obj)};
+    return function->fn(args);
   }
-  auto function{std::static_pointer_cast<Function>(obj)};
-  auto extended_env{extend_function_env(function, args)};
-  auto evaluated{
-      eval_block_statement(function->body->statements, extended_env)};
-  return unwrap_return_value(evaluated);
+
+  return error("not a function: " + std::to_string(obj->type()));
 }
 
 #include <iostream>

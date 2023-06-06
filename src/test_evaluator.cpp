@@ -16,6 +16,7 @@ bool test_let_statements();
 bool test_function_object();
 bool test_function_application();
 bool test_string_concatenation();
+bool test_builtin_functions();
 
 int main() {
   bool pass{true};
@@ -30,6 +31,7 @@ int main() {
   TEST(test_function_object, pass);
   TEST(test_function_application, pass);
   TEST(test_string_concatenation, pass);
+  TEST(test_builtin_functions, pass);
   return pass ? 0 : 1;
 }
 
@@ -270,6 +272,12 @@ bool test_error_handling() {
           "foobar",
           "identifier not found: foobar",
       },
+
+      // len(String) function
+      test<std::string>{R"(len(1))",
+                        "argument to `len` not supported, got INTEGER"},
+      test<std::string>{R"(len("one", "two"))",
+                        "wrong number of arguments. got=2, want=1"},
   }};
   auto pass{true};
   for (auto test : tests) {
@@ -353,6 +361,24 @@ bool test_string_concatenation() {
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<String>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+  }
+  return pass;
+}
+
+bool test_builtin_functions() {
+  auto tests{std::vector{
+      test<long>{R"(len(""))", 0},
+      test<long>{R"(len("four"))", 4},
+      test<long>{R"(len("hello world"))", 11},
+  }};
+
+  auto pass{true};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
       std::cout << test.input << std::endl;
       pass &= false;
     }

@@ -3,6 +3,7 @@ OBJ := \
 	obj/token.o \
 	obj/object.o \
 	obj/environment.o \
+	obj/builtins.o \
 	$(MAINS:%=obj/%.o) \
 
 TEST_SUITES := $(MAINS:%=test_%)

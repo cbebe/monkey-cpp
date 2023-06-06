@@ -1,5 +1,6 @@
 #pragma once
 #include "../ast/ast.hpp"
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -12,6 +13,7 @@ enum ObjectType {
   RETURN_VALUE_OBJ,
   ERROR_OBJ,
   FUNCTION_OBJ,
+  BUILTIN_OBJ,
 };
 
 namespace std {
@@ -81,4 +83,15 @@ public:
   std::vector<Identifier> params;
   std::shared_ptr<BlockStatement> body;
   std::shared_ptr<Environment> env;
+};
+
+using BuiltinFunction = std::function<std::shared_ptr<Object>(
+    std::vector<std::shared_ptr<Object>>)>;
+
+class Builtin : public Object {
+public:
+  Builtin(BuiltinFunction);
+  virtual std::string inspect() const override;
+  virtual ObjectType type() const override;
+  BuiltinFunction fn;
 };

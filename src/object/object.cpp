@@ -39,6 +39,8 @@ std::string to_string(ObjectType t) {
     return "ERROR";
   case STRING_OBJ:
     return "STRING";
+  case BUILTIN_OBJ:
+    return "BUILTIN";
   default:
     return "ILLEGAL";
   }
@@ -49,7 +51,6 @@ Function::Function(std::vector<Identifier> params,
                    std::shared_ptr<BlockStatement> body,
                    std::shared_ptr<Environment> env)
     : params(params), body(std::move(body)), env(std::move(env)) {}
-
 std::string Function::inspect() const {
   std::stringstream ss;
   ss << "fn(";
@@ -63,3 +64,7 @@ std::string Function::inspect() const {
   return ss.str();
 }
 ObjectType Function::type() const { return FUNCTION_OBJ; }
+
+Builtin::Builtin(BuiltinFunction fn) : fn(fn) {}
+std::string Builtin::inspect() const { return "builtin function"; }
+ObjectType Builtin::type() const { return BUILTIN_OBJ; }
