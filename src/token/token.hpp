@@ -47,6 +47,8 @@ TOKEN_TYPE(LParen);
 TOKEN_TYPE(RParen);
 TOKEN_TYPE(LSquirly);
 TOKEN_TYPE(RSquirly);
+TOKEN_TYPE(LSquarely);
+TOKEN_TYPE(RSquarely);
 
 // Keywords
 TOKEN_TYPE(Function);
@@ -60,8 +62,8 @@ TOKEN_TYPE(Return);
 using TokenVariant =
     std::variant<Illegal, Eof, Ident, Int, String, Assign, Plus, Minus, Bang,
                  Asterisk, Slash, LT, GT, Eq, NotEq, Comma, Semicolon, LParen,
-                 RParen, LSquirly, RSquirly, Function, Let, True, False, If,
-                 Else, Return>;
+                 RParen, LSquirly, RSquirly, LSquarely, RSquarely, Function,
+                 Let, True, False, If, Else, Return>;
 
 template <typename TokenType> bool is_type(TokenVariant t) {
   return std::visit(
@@ -138,6 +140,10 @@ template <typename T> std::string type_string() {
     ret_val = "LSQUIRLY";
   else if constexpr (std::is_same_v<T, RSquirly>)
     ret_val = "RSQUIRLY";
+  else if constexpr (std::is_same_v<T, LSquarely>)
+    ret_val = "LSQUARELY";
+  else if constexpr (std::is_same_v<T, RSquarely>)
+    ret_val = "RSQUARELY";
   else if constexpr (std::is_same_v<T, Function>)
     ret_val = "FUNCTION";
   else if constexpr (std::is_same_v<T, Let>)

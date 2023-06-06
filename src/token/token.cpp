@@ -73,6 +73,10 @@ std::string literal_string(token_types::TokenVariant v) {
           ret_val = "{";
         else if constexpr (std::is_same_v<T, RSquirly>)
           ret_val = "}";
+        else if constexpr (std::is_same_v<T, LSquarely>)
+          ret_val = "[";
+        else if constexpr (std::is_same_v<T, RSquarely>)
+          ret_val = "]";
         else if constexpr (std::is_same_v<T, Function>)
           ret_val = "fn";
         else if constexpr (std::is_same_v<T, Let>)
