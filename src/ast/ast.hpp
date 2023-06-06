@@ -59,6 +59,14 @@ public:
   std::string value;
 };
 
+class ArrayLiteral : public Expression {
+public:
+  ArrayLiteral(std::vector<std::shared_ptr<Expression>>);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::vector<std::shared_ptr<Expression>> elements;
+};
+
 class PrefixExpression : public Expression {
 public:
   PrefixExpression(token_types::TokenVariant, std::shared_ptr<Expression>);

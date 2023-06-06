@@ -46,6 +46,24 @@ std::string StringLiteral::token_literal() const { return value; }
 std::string StringLiteral::to_string() const { return value; }
 // }}}
 
+// {{{ ArrayLiteral
+ArrayLiteral::ArrayLiteral(std::vector<std::shared_ptr<Expression>> v)
+    : elements(v) {}
+std::string ArrayLiteral::token_literal() const { return "ARRAY"; }
+std::string ArrayLiteral::to_string() const {
+  std::stringstream ss;
+  ss << "[";
+  for (size_t i = 0; i < elements.size(); ++i) {
+    ss << elements[i]->to_string();
+    if (i != elements.size() - 1) {
+      ss << ", ";
+    }
+  }
+  ss << "]";
+  return ss.str();
+}
+// }}}
+
 // {{{ PrefixExpression
 PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
                                    std::shared_ptr<Expression> e)

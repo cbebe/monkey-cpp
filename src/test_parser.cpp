@@ -23,6 +23,8 @@ bool test_function_parameter_parsing();
 bool test_call_expression_parsing();
 bool test_call_parameter_parsing();
 
+bool test_array_literal_parsing();
+
 int main() {
   bool pass{true};
   TEST(test_let_statements, pass);
@@ -40,6 +42,7 @@ int main() {
   TEST(test_function_parameter_parsing, pass);
   TEST(test_call_expression_parsing, pass);
   TEST(test_call_parameter_parsing, pass);
+  TEST(test_array_literal_parsing, pass);
   return pass ? 0 : 1;
 }
 
@@ -701,6 +704,45 @@ bool test_call_parameter_parsing() {
       }
     }
   }
+  return true;
+}
+
+bool test_array_literal_parsing() {
+  auto input{"[1, 2 * 2, 3 + 3]"};
+  auto expr{get_single_expression_program<ArrayLiteral>(input)};
+  if (!expr) {
+    return false;
+  }
+  auto elems{expr->elements.size()};
+  if (elems != 3) {
+    std::cout << "Incorrect number of elements. got " << elems << " want " << 3;
+    return false;
+  }
+
+  if (!h_test_literal_expr<IntegerLiteral>(expr->elements[0], 1)) {
+    return false;
+  }
+
+  auto result{false};
+  auto mult_expr{
+      h_assert_expr_type<InfixExpression>(expr->elements[1], result)};
+  if (!result) {
+    return false;
+  }
+  auto add_expr{h_assert_expr_type<InfixExpression>(expr->elements[2], result)};
+  if (!result) {
+    return false;
+  }
+
+  using namespace token_types;
+  if (!test_single_infix_expression<IntegerLiteral>(mult_expr, 2, Asterisk{},
+                                                    2)) {
+    return false;
+  }
+  if (!test_single_infix_expression<IntegerLiteral>(add_expr, 3, Plus{}, 3)) {
+    return false;
+  }
+
   return true;
 }
 // }}}
