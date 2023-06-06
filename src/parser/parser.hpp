@@ -55,6 +55,7 @@ private:
   std::shared_ptr<Expression> parse_identifier();
   std::shared_ptr<Expression> parse_integer_literal();
   std::shared_ptr<Expression> parse_boolean_literal();
+  std::shared_ptr<Expression> parse_string_literal();
   std::shared_ptr<Expression> parse_function_literal();
   std::shared_ptr<Expression> parse_if_expression();
   std::shared_ptr<Expression> parse_grouped_expression();

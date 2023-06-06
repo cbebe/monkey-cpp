@@ -3,6 +3,32 @@
 
 using namespace token_types;
 
+Parser::Parser(Lexer l) : lexer(l) {
+  next_token();
+  next_token();
+
+  register_prefix(Ident{}, &Parser::parse_identifier);
+  register_prefix(LParen{}, &Parser::parse_grouped_expression);
+  register_prefix(Int{}, &Parser::parse_integer_literal);
+  register_prefix(True{}, &Parser::parse_boolean_literal);
+  register_prefix(False{}, &Parser::parse_boolean_literal);
+  register_prefix(String{}, &Parser::parse_string_literal);
+  register_prefix(Function{}, &Parser::parse_function_literal);
+  register_prefix(Bang{}, &Parser::parse_prefix_expression);
+  register_prefix(Minus{}, &Parser::parse_prefix_expression);
+  register_prefix(If{}, &Parser::parse_if_expression);
+
+  register_infix(Plus{}, &Parser::parse_infix_expression);
+  register_infix(Minus{}, &Parser::parse_infix_expression);
+  register_infix(Slash{}, &Parser::parse_infix_expression);
+  register_infix(Asterisk{}, &Parser::parse_infix_expression);
+  register_infix(Eq{}, &Parser::parse_infix_expression);
+  register_infix(NotEq{}, &Parser::parse_infix_expression);
+  register_infix(LT{}, &Parser::parse_infix_expression);
+  register_infix(GT{}, &Parser::parse_infix_expression);
+  register_infix(LParen{}, &Parser::parse_call_expression);
+};
+
 std::shared_ptr<Program> Parser::parse_program() {
   auto program = std::make_shared<Program>();
   while (!cur_token.is_type<Eof>()) {
@@ -57,12 +83,12 @@ std::vector<std::shared_ptr<Expression>> Parser::parse_call_arguments() {
     return args;
   }
   next_token();
-  args.push_back(std::shared_ptr<Expression>{parse_expression(LOWEST)});
+  args.push_back(parse_expression(LOWEST));
 
   while (peek_token.is_type<Comma>()) {
     next_token();
     next_token();
-    args.push_back(std::shared_ptr<Expression>{parse_expression(LOWEST)});
+    args.push_back(parse_expression(LOWEST));
   }
 
   if (!expect_peek<RParen>()) {
@@ -71,31 +97,6 @@ std::vector<std::shared_ptr<Expression>> Parser::parse_call_arguments() {
 
   return args;
 }
-
-Parser::Parser(Lexer l) : lexer(l) {
-  next_token();
-  next_token();
-
-  register_prefix(Ident{}, &Parser::parse_identifier);
-  register_prefix(LParen{}, &Parser::parse_grouped_expression);
-  register_prefix(Int{}, &Parser::parse_integer_literal);
-  register_prefix(True{}, &Parser::parse_boolean_literal);
-  register_prefix(False{}, &Parser::parse_boolean_literal);
-  register_prefix(Function{}, &Parser::parse_function_literal);
-  register_prefix(Bang{}, &Parser::parse_prefix_expression);
-  register_prefix(Minus{}, &Parser::parse_prefix_expression);
-  register_prefix(If{}, &Parser::parse_if_expression);
-
-  register_infix(Plus{}, &Parser::parse_infix_expression);
-  register_infix(Minus{}, &Parser::parse_infix_expression);
-  register_infix(Slash{}, &Parser::parse_infix_expression);
-  register_infix(Asterisk{}, &Parser::parse_infix_expression);
-  register_infix(Eq{}, &Parser::parse_infix_expression);
-  register_infix(NotEq{}, &Parser::parse_infix_expression);
-  register_infix(LT{}, &Parser::parse_infix_expression);
-  register_infix(GT{}, &Parser::parse_infix_expression);
-  register_infix(LParen{}, &Parser::parse_call_expression);
-};
 
 std::shared_ptr<Statement> Parser::parse_statement() {
   if (cur_token.is_type<Let>()) {
@@ -114,8 +115,7 @@ std::shared_ptr<Statement> Parser::parse_expression_statement() {
     next_token();
   }
 
-  return std::shared_ptr<Statement>{std::make_shared<ExpressionStatement>(
-      ExpressionStatement{std::move(expr)})};
+  return std::make_shared<ExpressionStatement>(std::move(expr));
 }
 
 std::shared_ptr<Statement> Parser::parse_return_statement() {
@@ -126,7 +126,7 @@ std::shared_ptr<Statement> Parser::parse_return_statement() {
     next_token();
   }
 
-  return std::shared_ptr<Statement>{std::make_shared<ReturnStatement>(ret_val)};
+  return std::make_shared<ReturnStatement>(ret_val);
 }
 
 std::shared_ptr<Statement> Parser::parse_let_statement() {
@@ -147,8 +147,7 @@ std::shared_ptr<Statement> Parser::parse_let_statement() {
     next_token();
   }
 
-  return std::make_shared<LetStatement>(
-      LetStatement{identifier, std::move(value)});
+  return std::make_shared<LetStatement>(identifier, std::move(value));
 }
 
 std::shared_ptr<BlockStatement> Parser::parse_block_statement() {
@@ -200,18 +199,20 @@ std::shared_ptr<Expression> Parser::parse_expression(Precedence precedence) {
 }
 
 std::shared_ptr<Expression> Parser::parse_identifier() {
-  return std::make_shared<Identifier>(
-      Identifier{std::get<Ident>(cur_token.value).literal});
+  return std::make_shared<Identifier>(std::get<Ident>(cur_token.value).literal);
 }
 
 std::shared_ptr<Expression> Parser::parse_integer_literal() {
-  return std::make_shared<IntegerLiteral>(
-      IntegerLiteral{std::get<Int>(cur_token.value).value});
+  return std::make_shared<IntegerLiteral>(std::get<Int>(cur_token.value).value);
 }
 
 std::shared_ptr<Expression> Parser::parse_boolean_literal() {
-  return std::make_shared<BooleanLiteral>(
-      BooleanLiteral{cur_token.is_type<True>()});
+  return std::make_shared<BooleanLiteral>(cur_token.is_type<True>());
+}
+
+std::shared_ptr<Expression> Parser::parse_string_literal() {
+  return std::make_shared<StringLiteral>(
+      std::get<String>(cur_token.value).value);
 }
 
 std::shared_ptr<Expression> Parser::parse_function_literal() {
@@ -223,8 +224,7 @@ std::shared_ptr<Expression> Parser::parse_function_literal() {
     return nullptr;
   }
   auto body{parse_block_statement()};
-  return std::make_shared<FunctionLiteral>(
-      FunctionLiteral{params, std::move(body)});
+  return std::make_shared<FunctionLiteral>(params, std::move(body));
 }
 
 std::shared_ptr<Expression> Parser::parse_if_expression() {
@@ -249,8 +249,8 @@ std::shared_ptr<Expression> Parser::parse_if_expression() {
     alternative = parse_block_statement();
   }
 
-  return std::make_shared<IfExpression>(IfExpression{
-      std::move(condition), std::move(consequence), std::move(alternative)});
+  return std::make_shared<IfExpression>(
+      std::move(condition), std::move(consequence), std::move(alternative));
 }
 
 std::shared_ptr<Expression> Parser::parse_grouped_expression() {
@@ -266,8 +266,7 @@ std::shared_ptr<Expression> Parser::parse_prefix_expression() {
   auto oper{cur_token.value};
   next_token();
   auto right{parse_expression(PREFIX)};
-  return std::make_shared<PrefixExpression>(
-      PrefixExpression{oper, std::move(right)});
+  return std::make_shared<PrefixExpression>(oper, std::move(right));
 }
 
 std::shared_ptr<Expression>
@@ -277,12 +276,12 @@ Parser::parse_infix_expression(std::shared_ptr<Expression> left) {
   next_token();
   auto right{parse_expression(precedence)};
 
-  return std::make_shared<InfixExpression>(
-      InfixExpression{std::move(left), oper, std::move(right)});
+  return std::make_shared<InfixExpression>(std::move(left), oper,
+                                           std::move(right));
 }
 
 std::shared_ptr<Expression>
 Parser::parse_call_expression(std::shared_ptr<Expression> caller) {
-  return std::shared_ptr<Expression>{std::make_shared<CallExpression>(
-      std::move(caller), parse_call_arguments())};
+  return std::make_shared<CallExpression>(std::move(caller),
+                                          parse_call_arguments());
 }
