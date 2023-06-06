@@ -7,7 +7,7 @@ OBJ := \
 
 TEST_SUITES := $(MAINS:%=test_%)
 TEST_CMDS := $(MAINS:%=test-%)
-TEST_SUITE_OBJS := $(TEST_SUITES:%=test_suite_obj/%.o)
+TEST_SUITE_OBJS := $(TEST_SUITES:%=test_obj/%.o)
 
 CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
 
@@ -40,7 +40,7 @@ test-evaluator: test_evaluator
 	@./$<
 
 clean:
-	rm -rf obj test_obj test_suite_obj $(TEST_SUITES) monke_repl
+	rm -rf obj test_obj $(TEST_SUITES) monke_repl
 
 
 clean-lsp:
@@ -61,7 +61,7 @@ test-leak:
 # END Commands }}}
 
 # {{{ Executables
-test_%: test_obj/%_test.o $(OBJ) test_suite_obj/test_%.o
+test_%: $(OBJ) test_obj/test_%.o
 	g++ -o $@ $(CPPFLAGS) $^
 
 monke_repl: $(OBJ) obj/repl.o
@@ -87,31 +87,16 @@ obj/%.o: src/object/%.cpp src/object/%.hpp | obj
 obj/%.o: src/evaluator/%.cpp src/evaluator/%.hpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
-test_obj/%.o: src/lexer/%.cpp src/lexer/%.hpp | test_obj
-	g++ -c -o $@ $(CPPFLAGS) $<
-
-test_obj/%.o: src/ast/%.cpp src/ast/%.hpp | test_obj
-	g++ -c -o $@ $(CPPFLAGS) $<
-
-test_obj/%.o: src/parser/%.cpp src/parser/%.hpp | test_obj
-	g++ -c -o $@ $(CPPFLAGS) $<
-
-test_obj/%.o: src/evaluator/%.cpp src/evaluator/%.hpp | test_obj
-	g++ -c -o $@ $(CPPFLAGS) $<
-
 obj/%.o: src/%.cpp | obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
-test_suite_obj/%.o: src/%.cpp | test_suite_obj
+test_obj/%.o: src/%.cpp | test_obj
 	g++ -c -o $@ $(CPPFLAGS) $<
 
 obj:
 	mkdir -p $@
 
 test_obj:
-	mkdir -p $@
-
-test_suite_obj:
 	mkdir -p $@
 # }}}
 
