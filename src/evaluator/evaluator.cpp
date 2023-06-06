@@ -13,6 +13,9 @@ std::shared_ptr<Object> integer(long value) {
 std::shared_ptr<Object> boolean(bool value) {
   return std::make_shared<Boolean>(value ? _TRUE : _FALSE);
 }
+std::shared_ptr<Object> string(const std::string &value) {
+  return std::make_shared<String>(value);
+}
 std::shared_ptr<Object> return_value(std::shared_ptr<Object> value) {
   return std::make_shared<ReturnValue>(value);
 }
@@ -296,6 +299,8 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
     return integer(e->value);
   } else if (auto *b{dynamic_cast<BooleanLiteral *>(n)}) {
     return boolean(b->value);
+  } else if (auto *s{dynamic_cast<StringLiteral *>(n)}) {
+    return string(s->value);
   } else if (auto *b{dynamic_cast<Identifier *>(n)}) {
     return eval_identifier(b->value, env);
   } else {

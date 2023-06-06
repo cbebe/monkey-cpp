@@ -7,6 +7,7 @@
 
 bool test_eval_integer_expression();
 bool test_eval_boolean_expression();
+bool test_eval_string_expression();
 bool test_bang_operator();
 bool test_if_else_expressions();
 bool test_return_statements();
@@ -19,6 +20,7 @@ int main() {
   bool pass{true};
   TEST(test_eval_integer_expression, pass);
   TEST(test_eval_boolean_expression, pass);
+  TEST(test_eval_string_expression, pass);
   TEST(test_bang_operator, pass);
   TEST(test_if_else_expressions, pass);
   TEST(test_return_statements, pass);
@@ -127,6 +129,21 @@ bool test_eval_boolean_expression() {
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Boolean>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+  }
+  return pass;
+}
+
+bool test_eval_string_expression() {
+  auto tests{std::vector{
+      test<std::string>{"\"Hello World!\"", "Hello World!"},
+  }};
+  auto pass{true};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<String>(evaluated.get(), test.expected)) {
       std::cout << test.input << std::endl;
       pass &= false;
     }

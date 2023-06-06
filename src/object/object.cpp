@@ -9,6 +9,10 @@ Boolean::Boolean(bool value) : value(value) {}
 std::string Boolean::inspect() const { return value ? "true" : "false"; }
 ObjectType Boolean::type() const { return BOOLEAN_OBJ; }
 
+String::String(const std::string &value) : value(value) {}
+std::string String::inspect() const { return value; }
+ObjectType String::type() const { return STRING_OBJ; }
+
 std::string Null::inspect() const { return "null"; }
 ObjectType Null::type() const { return NULL_OBJ; }
 
@@ -33,7 +37,8 @@ std::string to_string(ObjectType t) {
     return "RETURN";
   case ERROR_OBJ:
     return "ERROR";
-    break;
+  case STRING_OBJ:
+    return "STRING";
   default:
     return "ILLEGAL";
   }

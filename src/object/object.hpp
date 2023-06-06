@@ -7,6 +7,7 @@
 enum ObjectType {
   INTEGER_OBJ,
   BOOLEAN_OBJ,
+  STRING_OBJ,
   NULL_OBJ,
   RETURN_VALUE_OBJ,
   ERROR_OBJ,
@@ -37,6 +38,14 @@ public:
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
   bool value;
+};
+
+class String : public Object {
+public:
+  String(const std::string &);
+  virtual std::string inspect() const override;
+  virtual ObjectType type() const override;
+  std::string value;
 };
 
 class Null : public Object {
