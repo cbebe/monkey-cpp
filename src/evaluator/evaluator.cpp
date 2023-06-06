@@ -92,7 +92,7 @@ std::shared_ptr<Object> eval_prefix_expression(token_types::TokenVariant oper,
 
 std::shared_ptr<Object>
 eval_integer_infix_expression(std::shared_ptr<Object> left,
-                              token_types::TokenVariant oper,
+                              const token_types::TokenVariant &oper,
                               std::shared_ptr<Object> right) {
   using namespace token_types;
   auto lhs{static_cast<Integer *>(left.get())->value};
@@ -118,21 +118,44 @@ eval_integer_infix_expression(std::shared_ptr<Object> left,
   }
 }
 
-std::shared_ptr<Object> eval_infix_expression(std::shared_ptr<Object> left,
-                                              token_types::TokenVariant oper,
-                                              std::shared_ptr<Object> right) {
+std::shared_ptr<Object>
+eval_boolean_infix_expression(std::shared_ptr<Object> left,
+                              const token_types::TokenVariant &oper,
+                              std::shared_ptr<Object> right) {
+  auto lhs{static_cast<Boolean *>(left.get())->value};
+  auto rhs{static_cast<Boolean *>(right.get())->value};
+  if (is_type<token_types::Eq>(oper)) {
+    return boolean(lhs == rhs);
+  } else if (is_type<token_types::NotEq>(oper)) {
+    return boolean(lhs != rhs);
+  } else {
+    return unknown_infix(left->type(), oper, right->type());
+  }
+}
+
+std::shared_ptr<Object>
+eval_string_infix_expression(std::shared_ptr<Object> left,
+                             const token_types::TokenVariant &oper,
+                             std::shared_ptr<Object> right) {
+  auto lhs{static_cast<String *>(left.get())->value};
+  auto rhs{static_cast<String *>(right.get())->value};
+  if (is_type<token_types::Plus>(oper)) {
+    return string(lhs + rhs);
+  } else {
+    return unknown_infix(left->type(), oper, right->type());
+  }
+}
+
+std::shared_ptr<Object>
+eval_infix_expression(std::shared_ptr<Object> left,
+                      const token_types::TokenVariant &oper,
+                      std::shared_ptr<Object> right) {
   if (left->type() == INTEGER_OBJ && right->type() == INTEGER_OBJ) {
     return eval_integer_infix_expression(left, oper, right);
   } else if (left->type() == BOOLEAN_OBJ && right->type() == BOOLEAN_OBJ) {
-    auto lhs{static_cast<Boolean *>(left.get())->value};
-    auto rhs{static_cast<Boolean *>(right.get())->value};
-    if (is_type<token_types::Eq>(oper)) {
-      return boolean(lhs == rhs);
-    } else if (is_type<token_types::NotEq>(oper)) {
-      return boolean(lhs != rhs);
-    } else {
-      return unknown_infix(left->type(), oper, right->type());
-    }
+    return eval_boolean_infix_expression(left, oper, right);
+  } else if (left->type() == STRING_OBJ && right->type() == STRING_OBJ) {
+    return eval_string_infix_expression(left, oper, right);
   } else if (left->type() != right->type()) {
     return error("type mismatch: " + std::to_string(left->type()) + " " +
                  literal_string(oper) + " " + std::to_string(right->type()));

@@ -15,6 +15,7 @@ bool test_error_handling();
 bool test_let_statements();
 bool test_function_object();
 bool test_function_application();
+bool test_string_concatenation();
 
 int main() {
   bool pass{true};
@@ -28,6 +29,7 @@ int main() {
   TEST(test_let_statements, pass);
   TEST(test_function_object, pass);
   TEST(test_function_application, pass);
+  TEST(test_string_concatenation, pass);
   return pass ? 0 : 1;
 }
 
@@ -138,7 +140,7 @@ bool test_eval_boolean_expression() {
 
 bool test_eval_string_expression() {
   auto tests{std::vector{
-      test<std::string>{"\"Hello World!\"", "Hello World!"},
+      test<std::string>{R"("Hello World!")", "Hello World!"},
   }};
   auto pass{true};
   for (auto test : tests) {
@@ -251,6 +253,10 @@ bool test_error_handling() {
           "unknown operator: BOOLEAN + BOOLEAN",
       },
       test<std::string>{
+          R"("Hello" - "World")",
+          "unknown operator: STRING - STRING",
+      },
+      test<std::string>{
           R"(if (10 > 1) {
   if (10 > 1) {
     return true + false;
@@ -331,6 +337,22 @@ bool test_function_application() {
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
     if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+  }
+  return pass;
+}
+
+bool test_string_concatenation() {
+  auto tests{std::vector{
+      test<std::string>{R"("Hello" + " " + "World!")", "Hello World!"},
+  }};
+
+  auto pass{true};
+  for (auto test : tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<String>(evaluated.get(), test.expected)) {
       std::cout << test.input << std::endl;
       pass &= false;
     }
