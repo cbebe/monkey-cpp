@@ -17,6 +17,7 @@ bool test_function_object();
 bool test_function_application();
 bool test_string_concatenation();
 bool test_builtin_functions();
+bool test_array_literals();
 
 int main() {
   bool pass{true};
@@ -32,6 +33,7 @@ int main() {
   TEST(test_function_application, pass);
   TEST(test_string_concatenation, pass);
   TEST(test_builtin_functions, pass);
+  TEST(test_array_literals, pass);
   return pass ? 0 : 1;
 }
 
@@ -384,4 +386,26 @@ bool test_builtin_functions() {
     }
   }
   return pass;
+}
+
+bool test_array_literals() {
+  auto evaluated{h_test_eval("[1, 2 * 2, 3 + 3]")};
+  auto result{true};
+  auto array{h_assert_obj_type<Array>(evaluated.get(), result)};
+  if (!result) {
+    return false;
+  }
+  if (!h_assert_value<long>(array->elements.size(), 3)) {
+    return false;
+  }
+  if (!h_test_literal<Integer, long>(array->elements[0].get(), 1)) {
+    return false;
+  }
+  if (!h_test_literal<Integer, long>(array->elements[1].get(), 4)) {
+    return false;
+  }
+  if (!h_test_literal<Integer, long>(array->elements[2].get(), 6)) {
+    return false;
+  }
+  return true;
 }

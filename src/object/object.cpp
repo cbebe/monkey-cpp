@@ -13,6 +13,22 @@ String::String(const std::string &value) : value(value) {}
 std::string String::inspect() const { return value; }
 ObjectType String::type() const { return STRING_OBJ; }
 
+Array::Array(std::vector<std::shared_ptr<Object>> elements)
+    : elements(elements) {}
+std::string Array::inspect() const {
+  std::stringstream ss;
+  ss << "[";
+  for (size_t i = 0; i < elements.size(); i++) {
+    ss << elements[i]->inspect();
+    if (i < elements.size() - 1) {
+      ss << ", ";
+    }
+  }
+  ss << "]";
+  return ss.str();
+}
+ObjectType Array::type() const { return ARRAY_OBJ; }
+
 std::string Null::inspect() const { return "null"; }
 ObjectType Null::type() const { return NULL_OBJ; }
 

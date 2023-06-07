@@ -14,6 +14,7 @@ enum ObjectType {
   ERROR_OBJ,
   FUNCTION_OBJ,
   BUILTIN_OBJ,
+  ARRAY_OBJ,
 };
 
 namespace std {
@@ -48,6 +49,14 @@ public:
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
   std::string value;
+};
+
+class Array : public Object {
+public:
+  Array(std::vector<std::shared_ptr<Object>>);
+  virtual std::string inspect() const override;
+  virtual ObjectType type() const override;
+  std::vector<std::shared_ptr<Object>> elements;
 };
 
 class Null : public Object {

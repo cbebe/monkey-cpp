@@ -24,6 +24,9 @@ std::shared_ptr<Object> function(std::vector<Identifier> params,
                                  std::shared_ptr<Environment> env) {
   return std::make_unique<Function>(params, body, env);
 }
+std::shared_ptr<Object> array(std::vector<std::shared_ptr<Object>> elements) {
+  return std::make_unique<Array>(elements);
+}
 
 std::shared_ptr<Object> unknown_infix(ObjectType left,
                                       token_types::TokenVariant oper,
@@ -300,6 +303,12 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
       return val;
     }
     return eval_prefix_expression(e->oper, val);
+  } else if (auto *a{dynamic_cast<ArrayLiteral *>(n)}) {
+    auto elements{eval_expressions(a->elements, env)};
+    if (elements.size() == 1 && is_error(elements[0].get())) {
+      return elements[0];
+    }
+    return array(elements);
   } else if (auto *e{dynamic_cast<CallExpression *>(n)}) {
     auto val{eval(e->function, env)};
     if (is_error(val.get())) {
