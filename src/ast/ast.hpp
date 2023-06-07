@@ -76,6 +76,16 @@ public:
   std::shared_ptr<Expression> right;
 };
 
+class IndexExpression : public Expression {
+public:
+  IndexExpression(std::shared_ptr<Expression> left,
+                  std::shared_ptr<Expression> index);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::shared_ptr<Expression> left;
+  std::shared_ptr<Expression> index;
+};
+
 class InfixExpression : public Expression {
 public:
   InfixExpression(std::shared_ptr<Expression>, token_types::TokenVariant,

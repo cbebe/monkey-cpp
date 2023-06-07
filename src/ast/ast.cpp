@@ -74,6 +74,16 @@ std::string PrefixExpression::to_string() const {
 }
 // }}}
 
+// {{{ IndexExpression
+IndexExpression::IndexExpression(std::shared_ptr<Expression> left,
+                                 std::shared_ptr<Expression> index)
+    : left(std::move(left)), index(std::move(index)) {}
+std::string IndexExpression::token_literal() const { return "INDEX"; }
+std::string IndexExpression::to_string() const {
+  return "(" + left->to_string() + "[" + index->to_string() + "])";
+}
+// }}}
+
 // {{{ InfixExpression
 InfixExpression::InfixExpression(std::shared_ptr<Expression> left,
                                  token_types::TokenVariant prefix,

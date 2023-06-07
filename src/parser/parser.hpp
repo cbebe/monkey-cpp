@@ -25,6 +25,7 @@ enum Precedence {
   PRODUCT,     // *
   PREFIX,      // -X or !X
   CALL,        // myFunction(X)
+  INDEX,       // array[index]
 };
 
 class Parser;
@@ -65,6 +66,8 @@ private:
       parse_infix_expression(std::shared_ptr<Expression>);
   std::shared_ptr<Expression>
       parse_call_expression(std::shared_ptr<Expression>);
+  std::shared_ptr<Expression>
+      parse_index_expression(std::shared_ptr<Expression>);
 
   std::vector<Identifier> parse_function_parameters();
   template <typename T>

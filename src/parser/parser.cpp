@@ -28,6 +28,7 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_infix(LT{}, &Parser::parse_infix_expression);
   register_infix(GT{}, &Parser::parse_infix_expression);
   register_infix(LParen{}, &Parser::parse_call_expression);
+  register_infix(LSquarely{}, &Parser::parse_index_expression);
 };
 
 std::shared_ptr<Program> Parser::parse_program() {
@@ -169,7 +170,7 @@ std::unordered_map<TokenVariant, Precedence> precedences{
     {Eq{}, EQUALS},      {NotEq{}, EQUALS},     {LT{}, LESSGREATER},
     {GT{}, LESSGREATER}, {Plus{}, SUM},         {Minus{}, SUM},
     {Slash{}, PRODUCT},  {Asterisk{}, PRODUCT}, {LParen{}, CALL},
-};
+    {LSquarely{}, INDEX}};
 
 Precedence get_precedence(TokenVariant v) {
   auto precedence{precedences[v]};
@@ -290,4 +291,14 @@ std::shared_ptr<Expression>
 Parser::parse_call_expression(std::shared_ptr<Expression> caller) {
   return std::make_shared<CallExpression>(std::move(caller),
                                           parse_expression_list<RParen>());
+}
+
+std::shared_ptr<Expression>
+Parser::parse_index_expression(std::shared_ptr<Expression> left) {
+  next_token();
+  auto index{parse_expression(LOWEST)};
+  if (!expect_peek<RSquarely>()) {
+    return nullptr;
+  }
+  return std::make_shared<IndexExpression>(std::move(left), std::move(index));
 }

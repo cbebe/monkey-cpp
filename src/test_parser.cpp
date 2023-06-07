@@ -12,6 +12,7 @@ bool test_integer_literal_expression();
 bool test_boolean_literal_expression();
 bool test_string_literal_expression();
 bool test_prefix_expression();
+bool test_index_expression();
 bool test_infix_expression();
 bool test_operator_precedence();
 
@@ -34,6 +35,7 @@ int main() {
   TEST(test_boolean_literal_expression, pass);
   TEST(test_string_literal_expression, pass);
   TEST(test_prefix_expression, pass);
+  TEST(test_index_expression, pass);
   TEST(test_infix_expression, pass);
   TEST(test_operator_precedence, pass);
   TEST(test_if_expression, pass);
@@ -428,6 +430,26 @@ bool test_prefix_expression() {
   return true;
 }
 
+bool test_index_expression() {
+  auto expr{get_single_expression_program<IndexExpression>("myArray[1 + 1]")};
+  if (!expr) {
+    return false;
+  }
+
+  if (!h_test_literal_expr<Identifier>(std::move(expr->left), "myArray")) {
+    return false;
+  }
+
+  auto result{true};
+  auto index{
+      h_assert_expr_type<InfixExpression>(std::move(expr->index), result)};
+  if (!result) {
+    return false;
+  }
+  return test_single_infix_expression<IntegerLiteral>(std::move(index), 1,
+                                                      token_types::Plus{}, 1);
+}
+
 bool test_infix_expression() {
   using namespace token_types;
   auto tests = std::vector<std::any>{
@@ -501,6 +523,8 @@ bool test_operator_precedence() {
       test_case{ "2 / (5 + 5)", "(2 / (5 + 5))" },
       test_case{ "-(5 + 5)", "(-(5 + 5))" },
       test_case{ "!(true == true)", "(!(true == true))" },
+      test_case{ "a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)" },
+      test_case{ "add(a * b[2], b[1], 2 * [1, 2][1])", "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))" },
   }};
   // clang-format on
 
