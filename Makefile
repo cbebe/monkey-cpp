@@ -55,7 +55,7 @@ all: monke_repl
 leak: monke_repl
 	@valgrind ./$<
 
-test-leak:
+test-leak: test_evaluator
 	@echo "==> TESTING MEMORY LEAKS"
 	@valgrind ./test_evaluator
 .PHONY: fmt lint $(TEST_CMDS) test-leak clean clean-lsp run leak

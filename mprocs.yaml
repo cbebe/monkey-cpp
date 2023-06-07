@@ -4,7 +4,7 @@ procs:
   test:
     cmd: [make, -j, test]
   repl:
-    cmd: [make, -j, lexer]
+    cmd: [make, -j, run]
     autostart: false
   clean:
     cmd: [make, clean]
