@@ -10,7 +10,7 @@ TEST_SUITES := $(MAINS:%=test_%)
 TEST_CMDS := $(MAINS:%=test-%)
 TEST_SUITE_OBJS := $(TEST_SUITES:%=test_obj/%.o)
 
-CPPFLAGS := -std=c++20 -Wall -Wextra -pedantic -O3
+CPPFLAGS := -std=c++20 -Wall -Wextra -Wpedantic -O3
 
 # {{{ Commands
 help:

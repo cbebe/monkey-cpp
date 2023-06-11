@@ -165,6 +165,30 @@ eval_infix_expression(std::shared_ptr<Object> left,
 }
 
 std::shared_ptr<Object>
+eval_array_index_expression(std::shared_ptr<Object> array,
+                            std::shared_ptr<Object> index) {
+  auto arr{static_cast<Array *>(array.get())->elements};
+  auto max_idx{(long)arr.size() - 1};
+  auto idx{static_cast<Integer *>(index.get())->value};
+
+  if (idx < 0 || idx > max_idx) {
+    return null();
+  }
+
+  return arr[idx];
+}
+
+std::shared_ptr<Object> eval_index_expression(std::shared_ptr<Object> left,
+                                              std::shared_ptr<Object> index) {
+  if (left->type() == ARRAY_OBJ && index->type() == INTEGER_OBJ) {
+    return eval_array_index_expression(left, index);
+  } else {
+    return error("index operator not supported: " +
+                 std::to_string(left->type()));
+  }
+}
+
+std::shared_ptr<Object>
 eval_if_expression(std::shared_ptr<Expression> condition,
                    std::shared_ptr<BlockStatement> consequence,
                    std::shared_ptr<BlockStatement> alternative,
@@ -303,6 +327,16 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
       return val;
     }
     return eval_prefix_expression(e->oper, val);
+  } else if (auto *e{dynamic_cast<IndexExpression *>(n)}) {
+    auto left{eval(e->left, env)};
+    if (is_error(left.get())) {
+      return left;
+    }
+    auto index{eval(e->index, env)};
+    if (is_error(index.get())) {
+      return index;
+    }
+    return eval_index_expression(left, index);
   } else if (auto *a{dynamic_cast<ArrayLiteral *>(n)}) {
     auto elements{eval_expressions(a->elements, env)};
     if (elements.size() == 1 && is_error(elements[0].get())) {

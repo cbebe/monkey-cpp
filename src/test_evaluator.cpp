@@ -18,6 +18,7 @@ bool test_function_application();
 bool test_string_concatenation();
 bool test_builtin_functions();
 bool test_array_literals();
+bool test_array_index_expression();
 
 int main() {
   bool pass{true};
@@ -34,6 +35,7 @@ int main() {
   TEST(test_string_concatenation, pass);
   TEST(test_builtin_functions, pass);
   TEST(test_array_literals, pass);
+  TEST(test_array_index_expression, pass);
   return pass ? 0 : 1;
 }
 
@@ -408,4 +410,37 @@ bool test_array_literals() {
     return false;
   }
   return true;
+}
+
+bool test_array_index_expression() {
+  auto index_tests{std::vector{
+      // clang-format off
+      test<long>{ "[1, 2, 3][0]", 1 },
+      test<long>{ "[1, 2, 3][1]", 2 },
+      test<long>{ "[1, 2, 3][2]", 3 },
+      test<long>{ "let i = 0; [1][i];", 1 },
+      test<long>{ "[1, 2, 3][1 + 1];", 3 },
+      test<long>{ "let myArray = [1, 2, 3]; myArray[2];", 3 },
+      test<long>{ "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6 },
+      test<long>{ "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2 },
+      // clang-format on
+  }};
+  auto pass{true};
+  for (auto test : index_tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+  }
+  auto nil_tests{std::vector{"[1, 2, 3][3]", "[1, 2, 3][-1]"}};
+  for (auto test : nil_tests) {
+    auto evaluated{h_test_eval(test)};
+    auto result{true};
+    h_assert_obj_type<Null>(evaluated.get(), result);
+    if (!result) {
+      pass &= false;
+    }
+  }
+  return pass;
 }
