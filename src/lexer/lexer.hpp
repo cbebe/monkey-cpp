@@ -9,7 +9,7 @@ public:
 private:
   void read_char();
   char peek_char();
-  long read_number();
+  IntType read_number();
   void skip_whitespace();
   std::string read_identifier();
   std::string read_string();

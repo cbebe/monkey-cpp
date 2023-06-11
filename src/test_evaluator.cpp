@@ -82,21 +82,21 @@ template <typename T> struct test {
 
 bool test_eval_integer_expression() {
   auto tests{std::vector{
-      test<long>{"5", 5},
-      test<long>{"10", 10},
-      test<long>{"-5", -5},
-      test<long>{"-10", -10},
-      test<long>{"5 + 5 + 5 + 5 - 10", 10},
-      test<long>{"2 * 2 * 2 * 2 * 2", 32},
-      test<long>{"-50 + 100 + -50", 0},
-      test<long>{"5 * 2 + 10", 20},
-      test<long>{"5 + 2 * 10", 25},
-      test<long>{"20 + 2 * -10", 0},
-      test<long>{"50 / 2 * 2 + 10", 60},
-      test<long>{"2 * (5 + 10)", 30},
-      test<long>{"3 * 3 * 3 + 10", 37},
-      test<long>{"3 * (3 * 3) + 10", 37},
-      test<long>{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
+      test<IntType>{"5", 5},
+      test<IntType>{"10", 10},
+      test<IntType>{"-5", -5},
+      test<IntType>{"-10", -10},
+      test<IntType>{"5 + 5 + 5 + 5 - 10", 10},
+      test<IntType>{"2 * 2 * 2 * 2 * 2", 32},
+      test<IntType>{"-50 + 100 + -50", 0},
+      test<IntType>{"5 * 2 + 10", 20},
+      test<IntType>{"5 + 2 * 10", 25},
+      test<IntType>{"20 + 2 * -10", 0},
+      test<IntType>{"50 / 2 * 2 + 10", 60},
+      test<IntType>{"2 * (5 + 10)", 30},
+      test<IntType>{"3 * 3 * 3 + 10", 37},
+      test<IntType>{"3 * (3 * 3) + 10", 37},
+      test<IntType>{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
   }};
   auto pass{true};
   for (auto test : tests) {
@@ -180,18 +180,18 @@ bool test_bang_operator() {
 }
 
 bool test_if_else_expressions() {
-  auto ten = std::make_unique<long>(10);
-  auto twenty = std::make_unique<long>(20);
+  auto ten = std::make_unique<IntType>(10);
+  auto twenty = std::make_unique<IntType>(20);
   auto p_10 = ten.get();
   auto p_20 = twenty.get();
   auto tests{std::vector{
-      test<long *>{"if (true) { 10 }", p_10},
-      test<long *>{"if (false) { 10 }", nullptr},
-      test<long *>{"if (1) { 10 }", p_10},
-      test<long *>{"if (1 < 2) { 10 }", p_10},
-      test<long *>{"if (1 > 2) { 10 }", nullptr},
-      test<long *>{"if (1 > 2) { 10 } else { 20 }", p_20},
-      test<long *>{"if (1 < 2) { 10 } else { 20 }", p_10},
+      test<IntType *>{"if (true) { 10 }", p_10},
+      test<IntType *>{"if (false) { 10 }", nullptr},
+      test<IntType *>{"if (1) { 10 }", p_10},
+      test<IntType *>{"if (1 < 2) { 10 }", p_10},
+      test<IntType *>{"if (1 > 2) { 10 }", nullptr},
+      test<IntType *>{"if (1 > 2) { 10 } else { 20 }", p_20},
+      test<IntType *>{"if (1 < 2) { 10 } else { 20 }", p_10},
   }};
 
   auto pass{true};
@@ -215,12 +215,14 @@ bool test_if_else_expressions() {
 
 bool test_return_statements() {
   auto tests{std::vector{
-      test<long>{"return 10;", 10}, test<long>{"return 10; 9;", 10},
-      test<long>{"return 2 * 5; 9;", 10}, test<long>{"9; return 2 * 5; 9;", 10},
-      test<long>{
-          "if (10 > 1) { if (10 > 1) { return 10; } return 1; }",
-          10,
-      }}};
+      // clang-format off
+      test<IntType>{"return 10;", 10},
+      test<IntType>{"return 10; 9;", 10},
+      test<IntType>{"return 2 * 5; 9;", 10},
+      test<IntType>{"9; return 2 * 5; 9;", 10},
+      test<IntType>{"if (10 > 1) { if (10 > 1) { return 10; } return 1; }", 10},
+      // clang-format on
+  }};
   auto pass{true};
   for (auto test : tests) {
     auto evaluated{h_test_eval(test.input)};
@@ -234,34 +236,15 @@ bool test_return_statements() {
 
 bool test_error_handling() {
   auto tests{std::vector{
-      test<std::string>{
-          "5 + true;",
-          "type mismatch: INTEGER + BOOLEAN",
-      },
-      test<std::string>{
-          "5 + true; 5;",
-          "type mismatch: INTEGER + BOOLEAN",
-      },
-      test<std::string>{
-          "-true",
-          "unknown operator: -BOOLEAN",
-      },
-      test<std::string>{
-          "true + false;",
-          "unknown operator: BOOLEAN + BOOLEAN",
-      },
-      test<std::string>{
-          "5; true + false; 5",
-          "unknown operator: BOOLEAN + BOOLEAN",
-      },
-      test<std::string>{
-          "if (10 > 1) { true + false; }",
-          "unknown operator: BOOLEAN + BOOLEAN",
-      },
-      test<std::string>{
-          R"("Hello" - "World")",
-          "unknown operator: STRING - STRING",
-      },
+      // clang-format off
+      test<std::string>{ "5 + true;", "type mismatch: INTEGER + BOOLEAN" },
+      test<std::string>{ "5 + true; 5;", "type mismatch: INTEGER + BOOLEAN" },
+      test<std::string>{ "-true", "unknown operator: -BOOLEAN" },
+      test<std::string>{ "true + false;", "unknown operator: BOOLEAN + BOOLEAN" },
+      test<std::string>{ "5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN" },
+      test<std::string>{ "if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN" },
+      test<std::string>{ R"("Hello" - "World")", "unknown operator: STRING - STRING" },
+      // clang-format on
       test<std::string>{
           R"(if (10 > 1) {
   if (10 > 1) {
@@ -272,16 +255,13 @@ bool test_error_handling() {
 })",
           "unknown operator: BOOLEAN + BOOLEAN",
       },
-      test<std::string>{
-          "foobar",
-          "identifier not found: foobar",
-      },
+      test<std::string>{"foobar", "identifier not found: foobar"},
 
       // len(String) function
-      test<std::string>{R"(len(1))",
-                        "argument to `len` not supported, got INTEGER"},
-      test<std::string>{R"(len("one", "two"))",
-                        "wrong number of arguments. got=2, want=1"},
+      // clang-format off
+      test<std::string>{R"(len(1))", "argument to `len` not supported, got INTEGER"},
+      test<std::string>{R"(len("one", "two"))", "wrong number of arguments. got=2, want=1"},
+      // clang-format on
   }};
   auto pass{true};
   for (auto test : tests) {
@@ -296,10 +276,10 @@ bool test_error_handling() {
 
 bool test_let_statements() {
   auto tests{std::vector{
-      test<long>{"let a = 5; a;", 5},
-      test<long>{"let a = 5 * 5; a;", 25},
-      test<long>{"let a = 5; let b = a; b;", 5},
-      test<long>{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+      test<IntType>{"let a = 5; a;", 5},
+      test<IntType>{"let a = 5 * 5; a;", 25},
+      test<IntType>{"let a = 5; let b = a; b;", 5},
+      test<IntType>{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
   }};
   auto pass{true};
   for (auto test : tests) {
@@ -337,12 +317,14 @@ bool test_function_object() {
 
 bool test_function_application() {
   auto tests{std::vector{
-      test<long>{"let identity = fn(x) { x; }; identity(5);", 5},
-      test<long>{"let identity = fn(x) { return x; }; identity(5);", 5},
-      test<long>{"let double = fn(x) { x * 2; }; double(5);", 10},
-      test<long>{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-      test<long>{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-      test<long>{"fn(x) { x; }(5)", 5},
+      // clang-format off
+      test<IntType>{"let identity = fn(x) { x; }; identity(5);", 5},
+      test<IntType>{"let identity = fn(x) { return x; }; identity(5);", 5},
+      test<IntType>{"let double = fn(x) { x * 2; }; double(5);", 10},
+      test<IntType>{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+      test<IntType>{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+      test<IntType>{"fn(x) { x; }(5)", 5},
+      // clang-format on
   }};
 
   auto pass{true};
@@ -374,10 +356,10 @@ bool test_string_concatenation() {
 
 bool test_builtin_functions() {
   auto tests{std::vector{
-      test<long>{R"(len(""))", 0},
-      test<long>{R"(len("four"))", 4},
-      test<long>{R"(len("hello world"))", 11},
-      test<long>{R"(
+      test<IntType>{R"(len(""))", 0},
+      test<IntType>{R"(len("four"))", 4},
+      test<IntType>{R"(len("hello world"))", 11},
+      test<IntType>{R"(
       let map = fn(arr, f) {
         let iter = fn(arr, accumulated) {
           if (len(arr) == 0) {
@@ -408,7 +390,7 @@ bool test_builtin_functions() {
       let a = [1, 2, 3, 4];
       sum(map(a, double));
       )",
-                 20},
+                    20},
   }};
 
   auto pass{true};
@@ -429,16 +411,16 @@ bool test_array_literals() {
   if (!result) {
     return false;
   }
-  if (!h_assert_value<long>(array->elements.size(), 3)) {
+  if (!h_assert_value<size_t>(array->elements.size(), 3)) {
     return false;
   }
-  if (!h_test_literal<Integer, long>(array->elements[0].get(), 1)) {
+  if (!h_test_literal<Integer, IntType>(array->elements[0].get(), 1)) {
     return false;
   }
-  if (!h_test_literal<Integer, long>(array->elements[1].get(), 4)) {
+  if (!h_test_literal<Integer, IntType>(array->elements[1].get(), 4)) {
     return false;
   }
-  if (!h_test_literal<Integer, long>(array->elements[2].get(), 6)) {
+  if (!h_test_literal<Integer, IntType>(array->elements[2].get(), 6)) {
     return false;
   }
   return true;
@@ -447,14 +429,14 @@ bool test_array_literals() {
 bool test_array_index_expression() {
   auto index_tests{std::vector{
       // clang-format off
-      test<long>{ "[1, 2, 3][0]", 1 },
-      test<long>{ "[1, 2, 3][1]", 2 },
-      test<long>{ "[1, 2, 3][2]", 3 },
-      test<long>{ "let i = 0; [1][i];", 1 },
-      test<long>{ "[1, 2, 3][1 + 1];", 3 },
-      test<long>{ "let myArray = [1, 2, 3]; myArray[2];", 3 },
-      test<long>{ "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6 },
-      test<long>{ "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2 },
+      test<IntType>{ "[1, 2, 3][0]", 1 },
+      test<IntType>{ "[1, 2, 3][1]", 2 },
+      test<IntType>{ "[1, 2, 3][2]", 3 },
+      test<IntType>{ "let i = 0; [1][i];", 1 },
+      test<IntType>{ "[1, 2, 3][1 + 1];", 3 },
+      test<IntType>{ "let myArray = [1, 2, 3]; myArray[2];", 3 },
+      test<IntType>{ "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6 },
+      test<IntType>{ "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2 },
       // clang-format on
   }};
   auto pass{true};

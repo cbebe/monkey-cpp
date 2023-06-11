@@ -129,7 +129,7 @@ void Lexer::skip_whitespace() {
   }
 }
 
-long Lexer::read_number() {
+IntType Lexer::read_number() {
   auto start{position};
   while (is_digit(ch)) {
     read_char();

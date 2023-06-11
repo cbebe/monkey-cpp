@@ -1,7 +1,6 @@
-MAINS := lexer ast parser evaluator
+MAINS := lexer ast parser evaluator object
 OBJ := \
 	obj/token.o \
-	obj/object.o \
 	obj/environment.o \
 	obj/builtins.o \
 	$(MAINS:%=obj/%.o) \
@@ -38,6 +37,10 @@ test-parser: test_parser
 
 test-evaluator: test_evaluator
 	@echo "==> EVALUATOR TEST"
+	@./$<
+
+test-object: test_object
+	@echo "==> OBJECT TEST"
 	@./$<
 
 clean:

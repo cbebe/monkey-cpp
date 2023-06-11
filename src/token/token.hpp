@@ -2,6 +2,8 @@
 #include <string>
 #include <variant>
 
+typedef int64_t IntType;
+
 // I am so sorry, can't resist my C ways
 #define TOKEN_TYPE(CLASS)                                                      \
   struct CLASS {                                                               \
@@ -18,7 +20,7 @@ struct Ident {
   bool operator==(const Ident &) const { return true; }
 };
 struct Int {
-  long value;
+  IntType value;
   bool operator==(const Int &) const { return true; }
 };
 struct String {

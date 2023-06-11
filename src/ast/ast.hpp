@@ -46,10 +46,10 @@ public:
 
 class IntegerLiteral : public Expression {
 public:
-  IntegerLiteral(long);
+  IntegerLiteral(IntType);
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
-  long value;
+  IntType value;
 };
 
 class StringLiteral : public Expression {

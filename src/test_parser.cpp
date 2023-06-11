@@ -408,19 +408,19 @@ bool test_string_literal_expression() {
 
 bool test_prefix_expression() {
   auto tests = std::vector<std::any>{
-      prefix_test_case<long>{"!5;", token_types::Bang{}, 5},
-      prefix_test_case<long>{"-15;", token_types::Minus{}, 15},
+      prefix_test_case<IntType>{"!5;", token_types::Bang{}, 5},
+      prefix_test_case<IntType>{"-15;", token_types::Minus{}, 15},
       prefix_test_case<bool>{"!true;", token_types::Bang{}, true},
       prefix_test_case<bool>{"!false;", token_types::Bang{}, false},
   };
 
   for (size_t i = 0; i < tests.size(); i++) {
     auto test{tests[i]};
-    auto int_test{std::any_cast<prefix_test_case<long>>(&test)};
+    auto int_test{std::any_cast<prefix_test_case<IntType>>(&test)};
     auto bool_test{std::any_cast<prefix_test_case<bool>>(&test)};
     bool ret_val{true};
     if (int_test) {
-      if (!h_do_prefix_test_case<long, IntegerLiteral>(*int_test)) {
+      if (!h_do_prefix_test_case<IntType, IntegerLiteral>(*int_test)) {
         ret_val = false;
       }
     } else if (bool_test) {
@@ -462,21 +462,21 @@ bool test_index_expression() {
 bool test_infix_expression() {
   using namespace token_types;
   auto tests = std::vector<std::any>{
-      infix_test_case<long>{"3 + 10;", 3, Plus{}, 10},
-      infix_test_case<long>{"5 - 5;", 5, Minus{}, 5},
-      infix_test_case<long>{"5 * 5;", 5, Asterisk{}, 5},
-      infix_test_case<long>{"5 / 5;", 5, Slash{}, 5},
-      infix_test_case<long>{"5 > 5;", 5, GT{}, 5},
-      infix_test_case<long>{"5 < 5;", 5, LT{}, 5},
-      infix_test_case<long>{"5 == 5;", 5, Eq{}, 5},
-      infix_test_case<long>{"5 != 5;", 5, NotEq{}, 5},
+      infix_test_case<IntType>{"3 + 10;", 3, Plus{}, 10},
+      infix_test_case<IntType>{"5 - 5;", 5, Minus{}, 5},
+      infix_test_case<IntType>{"5 * 5;", 5, Asterisk{}, 5},
+      infix_test_case<IntType>{"5 / 5;", 5, Slash{}, 5},
+      infix_test_case<IntType>{"5 > 5;", 5, GT{}, 5},
+      infix_test_case<IntType>{"5 < 5;", 5, LT{}, 5},
+      infix_test_case<IntType>{"5 == 5;", 5, Eq{}, 5},
+      infix_test_case<IntType>{"5 != 5;", 5, NotEq{}, 5},
       infix_test_case<bool>{"true == true", true, Eq{}, true},
       infix_test_case<bool>{"false == false", false, Eq{}, false},
       infix_test_case<bool>{"true != false", true, NotEq{}, false},
   };
   for (size_t i = 0; i < tests.size(); i++) {
     auto test{tests[i]};
-    auto int_test{std::any_cast<infix_test_case<long>>(&test)};
+    auto int_test{std::any_cast<infix_test_case<IntType>>(&test)};
     auto bool_test{std::any_cast<infix_test_case<bool>>(&test)};
     bool ret_val{true};
     if (int_test) {
@@ -805,7 +805,7 @@ bool test_hash_literal_parsing_string_keys() {
     return false;
   }
 
-  std::unordered_map<std::string, long> expected{
+  std::unordered_map<std::string, IntType> expected{
       {"one", 1},
       {"two", 2},
       {"three", 3},
@@ -855,9 +855,9 @@ bool test_hash_literal_parsing_with_expressions() {
   using namespace token_types;
 
   struct infix {
-    long left;
+    IntType left;
     TokenVariant oper;
-    long right;
+    IntType right;
   };
   std::unordered_map<std::string, infix> expected{
       {"one", infix{0, Plus{}, 1}},

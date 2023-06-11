@@ -4,7 +4,7 @@
 #include <iostream>
 
 std::shared_ptr<Object> null() { return std::make_unique<Null>(_NULL); }
-std::shared_ptr<Object> integer(long value) {
+std::shared_ptr<Object> integer(IntType value) {
   return std::make_unique<Integer>(value);
 }
 std::shared_ptr<Object> boolean(bool value) {
@@ -168,7 +168,7 @@ std::shared_ptr<Object>
 eval_array_index_expression(std::shared_ptr<Object> array,
                             std::shared_ptr<Object> index) {
   auto arr{static_cast<Array *>(array.get())->elements};
-  auto max_idx{(long)arr.size() - 1};
+  auto max_idx{(IntType)arr.size() - 1};
   auto idx{static_cast<Integer *>(index.get())->value};
 
   if (idx < 0 || idx > max_idx) {

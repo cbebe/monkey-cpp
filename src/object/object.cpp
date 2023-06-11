@@ -1,17 +1,39 @@
 #include "object.hpp"
 #include <sstream>
 
-Integer::Integer(long value) : value(value) {}
+bool HashKey::operator==(const HashKey &other) const {
+  return type == other.type && value == other.value;
+}
+
+Integer::Integer(IntType value) : value(value) {}
 std::string Integer::inspect() const { return std::to_string(value); }
 ObjectType Integer::type() const { return INTEGER_OBJ; }
+HashKey Integer::hash_key() const { return HashKey{type(), (uint64_t)value}; }
 
 Boolean::Boolean(bool value) : value(value) {}
 std::string Boolean::inspect() const { return value ? "true" : "false"; }
 ObjectType Boolean::type() const { return BOOLEAN_OBJ; }
+HashKey Boolean::hash_key() const {
+  return HashKey{type(), (uint64_t)(value ? 1 : 0)};
+}
+
+uint64_t fnv64(const std::string &str) {
+  const uint64_t FNV_PRIME = 1099511628211ULL;
+  const uint64_t FNV_OFFSET_BASIS = 14695981039346656037ULL;
+
+  uint64_t hash = FNV_OFFSET_BASIS;
+  for (char c : str) {
+    hash ^= static_cast<uint64_t>(c);
+    hash *= FNV_PRIME;
+  }
+
+  return hash;
+}
 
 String::String(const std::string &value) : value(value) {}
 std::string String::inspect() const { return value; }
 ObjectType String::type() const { return STRING_OBJ; }
+HashKey String::hash_key() const { return HashKey{type(), fnv64(value)}; }
 
 Array::Array(std::vector<std::shared_ptr<Object>> elements)
     : elements(elements) {}

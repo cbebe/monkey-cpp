@@ -27,12 +27,29 @@ public:
   virtual ObjectType type() const = 0;
 };
 
+struct HashKey {
+  ObjectType type;
+  uint64_t value;
+
+  bool operator==(const HashKey &) const;
+};
+
+namespace std {
+template <> struct hash<HashKey> {
+  std::size_t operator()(const HashKey &k) const {
+    std::hash<uint64_t> hash{};
+    return hash(k.type) ^ hash(k.value);
+  }
+};
+} // namespace std
+
 class Integer : public Object {
 public:
-  Integer(long value);
+  Integer(IntType value);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
-  long value;
+  HashKey hash_key() const;
+  IntType value;
 };
 
 class Boolean : public Object {
@@ -40,6 +57,7 @@ public:
   Boolean(bool value);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
+  HashKey hash_key() const;
   bool value;
 };
 
@@ -48,6 +66,7 @@ public:
   String(const std::string &);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
+  HashKey hash_key() const;
   std::string value;
 };
 
