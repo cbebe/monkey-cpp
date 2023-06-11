@@ -1,8 +1,8 @@
 #include "builtins.hpp"
 #include "evaluator.hpp"
-#include <valarray>
+#include <iostream>
 
-std::shared_ptr<Object> len(std::vector<std::shared_ptr<Object>> args) {
+std::shared_ptr<Object> _len(std::vector<std::shared_ptr<Object>> args) {
   if (args.size() != 1) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
@@ -18,7 +18,7 @@ std::shared_ptr<Object> len(std::vector<std::shared_ptr<Object>> args) {
                std::to_string(args[0]->type()));
 }
 
-std::shared_ptr<Object> first(std::vector<std::shared_ptr<Object>> args) {
+std::shared_ptr<Object> _first(std::vector<std::shared_ptr<Object>> args) {
   if (args.size() != 1) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
@@ -35,7 +35,7 @@ std::shared_ptr<Object> first(std::vector<std::shared_ptr<Object>> args) {
                ", got " + std::to_string(args[0]->type()));
 }
 
-std::shared_ptr<Object> last(std::vector<std::shared_ptr<Object>> args) {
+std::shared_ptr<Object> _last(std::vector<std::shared_ptr<Object>> args) {
   if (args.size() != 1) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
@@ -53,7 +53,7 @@ std::shared_ptr<Object> last(std::vector<std::shared_ptr<Object>> args) {
                ", got " + std::to_string(args[0]->type()));
 }
 
-std::shared_ptr<Object> rest(std::vector<std::shared_ptr<Object>> args) {
+std::shared_ptr<Object> _rest(std::vector<std::shared_ptr<Object>> args) {
   if (args.size() != 1) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
@@ -71,7 +71,7 @@ std::shared_ptr<Object> rest(std::vector<std::shared_ptr<Object>> args) {
                ", got " + std::to_string(args[0]->type()));
 }
 
-std::shared_ptr<Object> push(std::vector<std::shared_ptr<Object>> args) {
+std::shared_ptr<Object> _push(std::vector<std::shared_ptr<Object>> args) {
   if (args.size() != 2) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=2");
@@ -86,11 +86,19 @@ std::shared_ptr<Object> push(std::vector<std::shared_ptr<Object>> args) {
                ", got " + std::to_string(args[0]->type()));
 }
 
+std::shared_ptr<Object> _puts(std::vector<std::shared_ptr<Object>> args) {
+  for (const auto &arg : args) {
+    std::cout << arg->inspect() << std::endl;
+  }
+  return null();
+}
+
 std::unordered_map<std::string, std::shared_ptr<Builtin>> builtins =
     std::unordered_map<std::string, std::shared_ptr<Builtin>>{
-        {"len", std::make_shared<Builtin>(len)},
-        {"first", std::make_shared<Builtin>(first)},
-        {"last", std::make_shared<Builtin>(last)},
-        {"rest", std::make_shared<Builtin>(rest)},
-        {"push", std::make_shared<Builtin>(push)},
+        {"len", std::make_shared<Builtin>(_len)},
+        {"first", std::make_shared<Builtin>(_first)},
+        {"last", std::make_shared<Builtin>(_last)},
+        {"rest", std::make_shared<Builtin>(_rest)},
+        {"push", std::make_shared<Builtin>(_push)},
+        {"puts", std::make_shared<Builtin>(_puts)},
     };
