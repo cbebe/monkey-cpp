@@ -37,7 +37,7 @@ std::string ReturnValue::inspect() const { return value->inspect(); }
 ObjectType ReturnValue::type() const { return RETURN_VALUE_OBJ; }
 
 Error::Error(std::string message) : value(message) {}
-std::string Error::inspect() const { return "ERROR:" + value; }
+std::string Error::inspect() const { return "ERROR: " + value; }
 ObjectType Error::type() const { return ERROR_OBJ; }
 
 namespace std {

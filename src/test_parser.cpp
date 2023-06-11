@@ -25,6 +25,7 @@ bool test_call_expression_parsing();
 bool test_call_parameter_parsing();
 
 bool test_array_literal_parsing();
+bool test_empty_array_literal_parsing();
 
 int main() {
   bool pass{true};
@@ -45,6 +46,7 @@ int main() {
   TEST(test_call_expression_parsing, pass);
   TEST(test_call_parameter_parsing, pass);
   TEST(test_array_literal_parsing, pass);
+  TEST(test_empty_array_literal_parsing, pass);
   return pass ? 0 : 1;
 }
 
@@ -727,6 +729,20 @@ bool test_call_parameter_parsing() {
         return false;
       }
     }
+  }
+  return true;
+}
+
+bool test_empty_array_literal_parsing() {
+  auto input{"[]"};
+  auto expr{get_single_expression_program<ArrayLiteral>(input)};
+  if (!expr) {
+    return false;
+  }
+  auto elems{expr->elements.size()};
+  if (elems != 0) {
+    std::cout << "Incorrect number of elements. got " << elems << " want " << 0;
+    return false;
   }
   return true;
 }

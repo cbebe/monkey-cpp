@@ -81,7 +81,7 @@ std::vector<Identifier> Parser::parse_function_parameters() {
 template <typename T>
 std::vector<std::shared_ptr<Expression>> Parser::parse_expression_list() {
   std::vector<std::shared_ptr<Expression>> args{};
-  if (peek_token.is_type<RParen>()) {
+  if (peek_token.is_type<T>()) {
     next_token();
     return args;
   }
