@@ -42,6 +42,7 @@ TOKEN_TYPE(NotEq);
 // Delimiters
 TOKEN_TYPE(Comma);
 TOKEN_TYPE(Semicolon);
+TOKEN_TYPE(Colon);
 
 TOKEN_TYPE(LParen);
 TOKEN_TYPE(RParen);
@@ -61,9 +62,9 @@ TOKEN_TYPE(Return);
 
 using TokenVariant =
     std::variant<Illegal, Eof, Ident, Int, String, Assign, Plus, Minus, Bang,
-                 Asterisk, Slash, LT, GT, Eq, NotEq, Comma, Semicolon, LParen,
-                 RParen, LSquirly, RSquirly, LSquarely, RSquarely, Function,
-                 Let, True, False, If, Else, Return>;
+                 Asterisk, Slash, LT, GT, Eq, NotEq, Comma, Semicolon, Colon,
+                 LParen, RParen, LSquirly, RSquirly, LSquarely, RSquarely,
+                 Function, Let, True, False, If, Else, Return>;
 
 template <typename TokenType> bool is_type(TokenVariant t) {
   return std::visit(
@@ -132,6 +133,8 @@ template <typename T> std::string type_string() {
     ret_val = "COMMA";
   else if constexpr (std::is_same_v<T, Semicolon>)
     ret_val = "SEMICOLON";
+  else if constexpr (std::is_same_v<T, Colon>)
+    ret_val = "COLON";
   else if constexpr (std::is_same_v<T, LParen>)
     ret_val = "LPAREN";
   else if constexpr (std::is_same_v<T, RParen>)

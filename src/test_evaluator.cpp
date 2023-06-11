@@ -328,7 +328,7 @@ bool test_function_object() {
   if (!h_assert_value<std::string>(literal->params[0].value, "x")) {
     return false;
   }
-  if (!h_assert_value<std::string>(literal->body->to_string(), "(x + 2)")) {
+  if (!h_assert_value<std::string>(literal->body->to_string(), "(x + 2)\n")) {
     return false;
   }
 

@@ -39,6 +39,8 @@ if (5 < 10) {
 "foobar"
 "foo bar"
 [1, 2];
+
+{"foo": "bar"}
 )"};
   std::vector<std::string> tests{
       "ASSIGN",
@@ -135,6 +137,12 @@ if (5 < 10) {
       "INT(2)",
       "RSQUARELY",
       "SEMICOLON",
+
+      "LSQUIRLY",
+      "STRING(foo)",
+      "COLON",
+      "STRING(bar)",
+      "RSQUIRLY",
 
       "EOF",
   };

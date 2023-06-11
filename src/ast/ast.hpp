@@ -1,6 +1,7 @@
 #pragma once
 #include "../token/token.hpp"
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 // {{{ Interfaces
@@ -67,6 +68,16 @@ public:
   std::vector<std::shared_ptr<Expression>> elements;
 };
 
+class HashLiteral : public Expression {
+public:
+  HashLiteral(std::unordered_map<std::shared_ptr<Expression>,
+                                 std::shared_ptr<Expression>>);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::unordered_map<std::shared_ptr<Expression>, std::shared_ptr<Expression>>
+      pairs;
+};
+
 class PrefixExpression : public Expression {
 public:
   PrefixExpression(token_types::TokenVariant, std::shared_ptr<Expression>);
@@ -106,6 +117,29 @@ public:
   std::shared_ptr<Expression> function;
   std::vector<std::shared_ptr<Expression>> arguments;
 };
+
+// Forward decl
+class BlockStatement;
+
+class IfExpression : public Expression {
+public:
+  IfExpression(std::shared_ptr<Expression>, std::shared_ptr<BlockStatement>,
+               std::shared_ptr<BlockStatement>);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<BlockStatement> consequence;
+  std::shared_ptr<BlockStatement> alternative;
+};
+
+class FunctionLiteral : public Expression {
+public:
+  FunctionLiteral(std::vector<Identifier>, std::shared_ptr<BlockStatement>);
+  virtual std::string token_literal() const override;
+  virtual std::string to_string() const override;
+  std::vector<Identifier> params;
+  std::shared_ptr<BlockStatement> body;
+};
 // }}}
 
 // {{{ Statements
@@ -139,28 +173,6 @@ public:
   virtual std::string token_literal() const override;
   virtual std::string to_string() const override;
   std::vector<std::shared_ptr<Statement>> statements{};
-};
-// }}}
-
-// {{{ Expressions that need BlockStatement definition
-class IfExpression : public Expression {
-public:
-  IfExpression(std::shared_ptr<Expression>, std::shared_ptr<BlockStatement>,
-               std::shared_ptr<BlockStatement>);
-  virtual std::string token_literal() const override;
-  virtual std::string to_string() const override;
-  std::shared_ptr<Expression> condition;
-  std::shared_ptr<BlockStatement> consequence;
-  std::shared_ptr<BlockStatement> alternative;
-};
-
-class FunctionLiteral : public Expression {
-public:
-  FunctionLiteral(std::vector<Identifier>, std::shared_ptr<BlockStatement>);
-  virtual std::string token_literal() const override;
-  virtual std::string to_string() const override;
-  std::vector<Identifier> params;
-  std::shared_ptr<BlockStatement> body;
 };
 // }}}
 

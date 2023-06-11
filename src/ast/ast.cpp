@@ -64,6 +64,28 @@ std::string ArrayLiteral::to_string() const {
 }
 // }}}
 
+// {{{ HashLiteral
+HashLiteral::HashLiteral(
+    std::unordered_map<std::shared_ptr<Expression>, std::shared_ptr<Expression>>
+        v)
+    : pairs(v) {}
+std::string HashLiteral::token_literal() const { return "HASH"; }
+std::string HashLiteral::to_string() const {
+  std::stringstream ss;
+  ss << "{";
+  size_t i = 0;
+  size_t size{pairs.size()};
+  for (const auto &k : pairs) {
+    ss << k.first->to_string() << ": " << k.second->to_string();
+    if (i < size - 1) {
+      ss << ", ";
+    }
+  }
+  ss << "}";
+  return ss.str();
+}
+// }}}
+
 // {{{ PrefixExpression
 PrefixExpression::PrefixExpression(token_types::TokenVariant prefix,
                                    std::shared_ptr<Expression> e)

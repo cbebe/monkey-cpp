@@ -27,6 +27,10 @@ bool test_call_parameter_parsing();
 bool test_array_literal_parsing();
 bool test_empty_array_literal_parsing();
 
+bool test_hash_literal_parsing_string_keys();
+bool test_hash_literal_parsing_empty();
+bool test_hash_literal_parsing_with_expressions();
+
 int main() {
   bool pass{true};
   TEST(test_let_statements, pass);
@@ -47,6 +51,9 @@ int main() {
   TEST(test_call_parameter_parsing, pass);
   TEST(test_array_literal_parsing, pass);
   TEST(test_empty_array_literal_parsing, pass);
+  TEST(test_hash_literal_parsing_string_keys, pass);
+  TEST(test_hash_literal_parsing_empty, pass);
+  TEST(test_hash_literal_parsing_with_expressions, pass);
   return pass ? 0 : 1;
 }
 
@@ -298,8 +305,8 @@ template <typename T> struct infix_test_case {
 };
 
 template <class C, typename T>
-bool test_single_infix_expression(ExprSubtype<InfixExpression> expr, T left,
-                                  token_types::TokenVariant oper, T right) {
+bool h_test_single_infix_expression(ExprSubtype<InfixExpression> expr, T left,
+                                    token_types::TokenVariant oper, T right) {
 
   if (expr->oper != oper) {
     std::cout << "Wrong operator. want: " << type_to_string(oper)
@@ -323,13 +330,13 @@ bool h_do_infix_test_case(infix_test_case<T> test) {
   if (!expr) {
     return false;
   }
-  return test_single_infix_expression<C, T>(std::move(expr), test.left,
-                                            test.oper, test.right);
+  return h_test_single_infix_expression<C, T>(std::move(expr), test.left,
+                                              test.oper, test.right);
 }
 
 template <typename Expr>
 ExprSubtype<Expr>
-test_single_block_statement(std::shared_ptr<BlockStatement> block) {
+h_test_single_block_statement(std::shared_ptr<BlockStatement> block) {
   size_t length{block->statements.size()};
   if (length != 1) {
     std::cout << "Incorrect number of statements. got " << length << " want "
@@ -351,13 +358,13 @@ ExprSubtype<IfExpression> test_single_if_expression(std::string input) {
   if (!result) {
     return nullptr;
   }
-  result = test_single_infix_expression<Identifier>(std::move(infix_expr), "x",
-                                                    token_types::LT{}, "y");
+  result = h_test_single_infix_expression<Identifier>(
+      std::move(infix_expr), "x", token_types::LT{}, "y");
   if (!result) {
     return nullptr;
   }
   auto consequence_expr{
-      test_single_block_statement<Identifier>(std::move(expr->consequence))};
+      h_test_single_block_statement<Identifier>(std::move(expr->consequence))};
   if (!consequence_expr) {
     return nullptr;
   }
@@ -448,8 +455,8 @@ bool test_index_expression() {
   if (!result) {
     return false;
   }
-  return test_single_infix_expression<IntegerLiteral>(std::move(index), 1,
-                                                      token_types::Plus{}, 1);
+  return h_test_single_infix_expression<IntegerLiteral>(std::move(index), 1,
+                                                        token_types::Plus{}, 1);
 }
 
 bool test_infix_expression() {
@@ -576,7 +583,7 @@ bool test_if_else_expression() {
     return false;
   }
   auto alternative_expr{
-      test_single_block_statement<Identifier>(std::move(expr->alternative))};
+      h_test_single_block_statement<Identifier>(std::move(expr->alternative))};
   if (!alternative_expr) {
     return false;
   }
@@ -608,13 +615,13 @@ bool test_function_literal_parsing() {
   }
 
   auto body_expr{
-      test_single_block_statement<InfixExpression>(std::move(expr->body))};
+      h_test_single_block_statement<InfixExpression>(std::move(expr->body))};
   if (!body_expr) {
     return false;
   }
 
-  return test_single_infix_expression<Identifier>(std::move(body_expr), "x",
-                                                  token_types::Plus{}, "y");
+  return h_test_single_infix_expression<Identifier>(std::move(body_expr), "x",
+                                                    token_types::Plus{}, "y");
 }
 
 bool test_function_parameter_parsing() {
@@ -678,7 +685,7 @@ bool test_call_expression_parsing() {
   if (!result) {
     return false;
   }
-  if (!test_single_infix_expression<IntegerLiteral>(
+  if (!h_test_single_infix_expression<IntegerLiteral>(
           std::move(arg1), 2, token_types::Asterisk{}, 3)) {
     return false;
   };
@@ -687,8 +694,8 @@ bool test_call_expression_parsing() {
   if (!result) {
     return false;
   }
-  if (!test_single_infix_expression<IntegerLiteral>(std::move(arg2), 4,
-                                                    token_types::Plus{}, 5)) {
+  if (!h_test_single_infix_expression<IntegerLiteral>(std::move(arg2), 4,
+                                                      token_types::Plus{}, 5)) {
     return false;
   };
 
@@ -775,12 +782,100 @@ bool test_array_literal_parsing() {
   }
 
   using namespace token_types;
-  if (!test_single_infix_expression<IntegerLiteral>(mult_expr, 2, Asterisk{},
-                                                    2)) {
+  if (!h_test_single_infix_expression<IntegerLiteral>(mult_expr, 2, Asterisk{},
+                                                      2)) {
     return false;
   }
-  if (!test_single_infix_expression<IntegerLiteral>(add_expr, 3, Plus{}, 3)) {
+  if (!h_test_single_infix_expression<IntegerLiteral>(add_expr, 3, Plus{}, 3)) {
     return false;
+  }
+
+  return true;
+}
+
+bool test_hash_literal_parsing_string_keys() {
+  auto input{R"({"one": 1, "two": 2, "three": 3 })"};
+  auto expr{get_single_expression_program<HashLiteral>(input)};
+  if (!expr) {
+    return false;
+  }
+  auto elems{expr->pairs.size()};
+  if (elems != 3) {
+    std::cout << "Incorrect number of elements. got " << elems << " want " << 3;
+    return false;
+  }
+
+  std::unordered_map<std::string, long> expected{
+      {"one", 1},
+      {"two", 2},
+      {"three", 3},
+  };
+  auto result{false};
+  for (const auto &k : expr->pairs) {
+    auto str{h_assert_expr_type<StringLiteral>(k.first, result)};
+    if (!result) {
+      return false;
+    }
+    auto val{expected[str->value]};
+    if (!h_test_literal_expr<IntegerLiteral>(k.second, val)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool test_hash_literal_parsing_empty() {
+  auto input{R"({})"};
+  auto expr{get_single_expression_program<HashLiteral>(input)};
+  if (!expr) {
+    return false;
+  }
+  auto elems{expr->pairs.size()};
+  if (elems != 0) {
+    std::cout << "Incorrect number of elements. got " << elems << " want " << 0;
+    return false;
+  }
+
+  return true;
+}
+
+bool test_hash_literal_parsing_with_expressions() {
+  auto input{R"({"one": 0 + 1, "two": 10 - 8, "three": 15 / 5 })"};
+  auto expr{get_single_expression_program<HashLiteral>(input)};
+  if (!expr) {
+    return false;
+  }
+  auto elems{expr->pairs.size()};
+  if (elems != 3) {
+    std::cout << "Incorrect number of elements. got " << elems << " want " << 3;
+    return false;
+  }
+
+  using namespace token_types;
+
+  struct infix {
+    long left;
+    TokenVariant oper;
+    long right;
+  };
+  std::unordered_map<std::string, infix> expected{
+      {"one", infix{0, Plus{}, 1}},
+      {"two", infix{10, Minus{}, 8}},
+      {"three", infix{15, Slash{}, 5}},
+  };
+  auto result{false};
+  for (const auto &k : expr->pairs) {
+    auto str{h_assert_expr_type<StringLiteral>(k.first, result)};
+    if (!result) {
+      return false;
+    }
+    auto val{expected[str->value]};
+    auto infix_expr{h_assert_expr_type<InfixExpression>(k.second, result)};
+    if (!h_test_single_infix_expression<IntegerLiteral>(infix_expr, val.left,
+                                                        val.oper, val.right)) {
+      return false;
+    };
   }
 
   return true;

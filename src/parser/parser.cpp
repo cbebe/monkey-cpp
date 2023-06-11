@@ -14,6 +14,7 @@ Parser::Parser(Lexer l) : lexer(l) {
   register_prefix(False{}, &Parser::parse_boolean_literal);
   register_prefix(String{}, &Parser::parse_string_literal);
   register_prefix(LSquarely{}, &Parser::parse_array_literal);
+  register_prefix(LSquirly{}, &Parser::parse_hash_literal);
   register_prefix(Function{}, &Parser::parse_function_literal);
   register_prefix(Bang{}, &Parser::parse_prefix_expression);
   register_prefix(Minus{}, &Parser::parse_prefix_expression);
@@ -220,6 +221,32 @@ std::shared_ptr<Expression> Parser::parse_string_literal() {
 
 std::shared_ptr<Expression> Parser::parse_array_literal() {
   return std::make_shared<ArrayLiteral>(parse_expression_list<RSquarely>());
+}
+
+std::shared_ptr<Expression> Parser::parse_hash_literal() {
+  std::unordered_map<std::shared_ptr<Expression>, std::shared_ptr<Expression>>
+      pairs;
+
+  while (!peek_token.is_type<RSquirly>()) {
+    next_token();
+    auto key{parse_expression(LOWEST)};
+    if (!expect_peek<Colon>()) {
+      return nullptr;
+    }
+    next_token();
+    auto value{parse_expression(LOWEST)};
+    pairs[key] = value;
+
+    if (!peek_token.is_type<RSquirly>() && !expect_peek<Comma>()) {
+      return nullptr;
+    }
+  }
+
+  if (!expect_peek<RSquirly>()) {
+    return nullptr;
+  }
+
+  return std::make_shared<HashLiteral>(pairs);
 }
 
 std::shared_ptr<Expression> Parser::parse_function_literal() {

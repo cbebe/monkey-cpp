@@ -58,6 +58,7 @@ Token Lexer::next_token() {
   // clang-format off
   case '"': tok = new_token(String{read_string()}); break;
   case ';': tok = new_token(Semicolon{}); break;
+  case ':': tok = new_token(Colon{}); break;
   case '(': tok = new_token(LParen{}); break;
   case ')': tok = new_token(RParen{}); break;
   case ',': tok = new_token(Comma{}); break;

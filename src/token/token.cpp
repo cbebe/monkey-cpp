@@ -65,6 +65,8 @@ std::string literal_string(token_types::TokenVariant v) {
           ret_val = ",";
         else if constexpr (std::is_same_v<T, Semicolon>)
           ret_val = ";";
+        else if constexpr (std::is_same_v<T, Colon>)
+          ret_val = ":";
         else if constexpr (std::is_same_v<T, LParen>)
           ret_val = "(";
         else if constexpr (std::is_same_v<T, RParen>)
