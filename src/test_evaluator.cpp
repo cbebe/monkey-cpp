@@ -20,6 +20,7 @@ bool test_builtin_functions();
 bool test_array_literals();
 bool test_array_index_expression();
 bool test_hash_literals();
+bool test_hash_index_expression();
 
 int main() {
   bool pass{true};
@@ -38,6 +39,7 @@ int main() {
   TEST(test_array_literals, pass);
   TEST(test_array_index_expression, pass);
   TEST(test_hash_literals, pass);
+  TEST(test_hash_index_expression, pass);
   return pass ? 0 : 1;
 }
 
@@ -259,10 +261,13 @@ bool test_error_handling() {
       },
       test<std::string>{"foobar", "identifier not found: foobar"},
 
-      // len(String) function
       // clang-format off
+
+      // len(String) function
       test<std::string>{R"(len(1))", "argument to `len` not supported, got INTEGER"},
       test<std::string>{R"(len("one", "two"))", "wrong number of arguments. got=2, want=1"},
+
+      test<std::string>{R"({"name": "Monkey"}[fn(x) { x }];)", "unusable as hash key: FUNCTION"},
       // clang-format on
   }};
   auto pass{true};
@@ -434,14 +439,14 @@ bool test_array_literals() {
 bool test_array_index_expression() {
   auto index_tests{std::vector{
       // clang-format off
-      test<IntType>{ "[1, 2, 3][0]", 1 },
-      test<IntType>{ "[1, 2, 3][1]", 2 },
-      test<IntType>{ "[1, 2, 3][2]", 3 },
-      test<IntType>{ "let i = 0; [1][i];", 1 },
-      test<IntType>{ "[1, 2, 3][1 + 1];", 3 },
-      test<IntType>{ "let myArray = [1, 2, 3]; myArray[2];", 3 },
-      test<IntType>{ "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6 },
-      test<IntType>{ "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2 },
+      test<IntType>{"[1, 2, 3][0]", 1},
+      test<IntType>{"[1, 2, 3][1]", 2},
+      test<IntType>{"[1, 2, 3][2]", 3},
+      test<IntType>{"let i = 0; [1][i];", 1},
+      test<IntType>{"[1, 2, 3][1 + 1];", 3},
+      test<IntType>{"let myArray = [1, 2, 3]; myArray[2];", 3},
+      test<IntType>{"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6},
+      test<IntType>{"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2},
       // clang-format on
   }};
   auto pass{true};
@@ -503,4 +508,32 @@ bool test_hash_literals() {
     }
   }
   return true;
+}
+
+bool test_hash_index_expression() {
+  auto index_tests{std::vector{
+      test<IntType>{R"({"foo": 5}["foo"])", 5},
+      test<IntType>{R"(let key = "foo"; {"foo": 5}[key])", 5},
+      test<IntType>{R"({5: 5}[5])", 5},
+      test<IntType>{R"({true: 5}[true])", 5},
+      test<IntType>{R"({false: 5}[false])", 5},
+  }};
+  auto pass{true};
+  for (auto test : index_tests) {
+    auto evaluated{h_test_eval(test.input)};
+    if (!h_test_literal<Integer>(evaluated.get(), test.expected)) {
+      std::cout << test.input << std::endl;
+      pass &= false;
+    }
+  }
+  auto nil_tests{std::vector{R"({"foo": 5}["bar"])", R"({}["foo"])"}};
+  for (auto test : nil_tests) {
+    auto evaluated{h_test_eval(test)};
+    auto result{true};
+    h_assert_obj_type<Null>(evaluated.get(), result);
+    if (!result) {
+      pass &= false;
+    }
+  }
+  return pass;
 }

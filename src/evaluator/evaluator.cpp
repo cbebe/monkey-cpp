@@ -44,6 +44,10 @@ std::shared_ptr<Error> unknown_prefix(token_types::TokenVariant oper,
                std::to_string(right));
 }
 
+std::shared_ptr<Error> unusable_hash(ObjectType key) {
+  return error("unusable as hash key: " + std::to_string(key));
+}
+
 bool is_truthy(Object *obj) {
   switch (obj->type()) {
   case INTEGER_OBJ:
@@ -181,10 +185,29 @@ eval_array_index_expression(std::shared_ptr<Object> array,
   return arr[idx];
 }
 
+std::shared_ptr<Object>
+eval_hash_index_expression(std::shared_ptr<Object> hash,
+                           std::shared_ptr<Object> index) {
+  auto pairs{static_cast<Hash *>(hash.get())->pairs};
+  auto key{std::dynamic_pointer_cast<Hashable>(index)};
+  if (!key) {
+    return unusable_hash(index->type());
+  }
+
+  auto hash_key{key->hash_key()};
+  if (!pairs.contains(hash_key)) {
+    return null();
+  }
+
+  return pairs[hash_key].value;
+}
+
 std::shared_ptr<Object> eval_index_expression(std::shared_ptr<Object> left,
                                               std::shared_ptr<Object> index) {
   if (left->type() == ARRAY_OBJ && index->type() == INTEGER_OBJ) {
     return eval_array_index_expression(left, index);
+  } else if (left->type() == HASH_OBJ) {
+    return eval_hash_index_expression(left, index);
   } else {
     return error("index operator not supported: " +
                  std::to_string(left->type()));
@@ -316,7 +339,7 @@ std::shared_ptr<Object> eval_hash_literal(
       }
       pairs[hash_key->hash_key()] = HashPair{key, value};
     } else {
-      return error("unusable as hash key: " + std::to_string(key->type()));
+      return unusable_hash(key->type());
     }
   }
 

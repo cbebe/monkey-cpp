@@ -69,20 +69,22 @@ std::string to_string(ObjectType t) {
     return "INTEGER";
   case BOOLEAN_OBJ:
     return "BOOLEAN";
+  case STRING_OBJ:
+    return "STRING";
   case NULL_OBJ:
     return "NULL";
   case RETURN_VALUE_OBJ:
     return "RETURN";
   case ERROR_OBJ:
     return "ERROR";
-  case STRING_OBJ:
-    return "STRING";
+  case FUNCTION_OBJ:
+    return "FUNCTION";
   case BUILTIN_OBJ:
     return "BUILTIN";
+  case ARRAY_OBJ:
+    return "ARRAY";
   case HASH_OBJ:
     return "HASH";
-  default:
-    return "ILLEGAL";
   }
 }
 } // namespace std
