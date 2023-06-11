@@ -66,7 +66,7 @@ std::string to_string(ObjectType t) {
 Function::Function(std::vector<Identifier> params,
                    std::shared_ptr<BlockStatement> body,
                    std::shared_ptr<Environment> env)
-    : params(params), body(std::move(body)), env(std::move(env)) {}
+    : params(params), body(body), env(env) {}
 std::string Function::inspect() const {
   std::stringstream ss;
   ss << "fn(";

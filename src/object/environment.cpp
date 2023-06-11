@@ -2,21 +2,17 @@
 #include <sstream>
 
 Environment::Environment() : outer(nullptr) {}
-Environment::Environment(std::shared_ptr<Environment> env)
-    : outer(std::move(env)) {}
+Environment::Environment(std::shared_ptr<Environment> env) : outer(env) {}
 
 #include <iostream>
 std::shared_ptr<Object> Environment::get(const std::string &name) {
-  auto obj{store[name]};
-  if (!obj && outer) {
-    if (auto outer_val{outer->get(name)}) {
-      return outer_val;
-    } else {
-      std::cout << "WTF" << std::endl;
-      return std::make_shared<Null>();
-    }
+  if (store.contains(name)) {
+    return store[name];
+  } else if (outer) {
+    return outer->get(name);
+  } else {
+    return nullptr;
   }
-  return obj;
 }
 std::shared_ptr<Object> Environment::set(const std::string &name,
                                          std::shared_ptr<Object> object) {

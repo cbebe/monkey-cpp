@@ -124,8 +124,9 @@ IfExpression::IfExpression(std::shared_ptr<Expression> condition,
       alternative(std::move(alternative)) {}
 std::string IfExpression::token_literal() const { return "if"; }
 std::string IfExpression::to_string() const {
-  return "if" + condition->to_string() + " " + consequence->to_string() +
-         (alternative ? ("else " + alternative->to_string()) : "");
+  return "if (" + condition->to_string() + ") {\n" + consequence->to_string() +
+         "\n}" +
+         (alternative ? (" else {\n" + alternative->to_string() + "\n}") : "");
 }
 // }}}
 
@@ -162,7 +163,7 @@ std::string BlockStatement::token_literal() const { return "BLOCK"; }
 std::string BlockStatement::to_string() const {
   std::stringstream ss;
   for (auto &s : statements) {
-    ss << s->to_string();
+    ss << s->to_string() << std::endl;
   }
   return ss.str();
 }
@@ -175,11 +176,14 @@ FunctionLiteral::FunctionLiteral(std::vector<Identifier> params,
 std::string FunctionLiteral::token_literal() const { return "FUNCTION"; }
 std::string FunctionLiteral::to_string() const {
   std::stringstream ss;
-  ss << token_literal() << "(";
-  for (auto &s : params) {
-    ss << s.to_string();
+  ss << "fn(";
+  for (size_t i = 0; i < params.size(); i++) {
+    ss << params[i].to_string();
+    if (i < params.size() - 1) {
+      ss << ", ";
+    }
   }
-  ss << ") " << body->to_string();
+  ss << ") {\n" << body->to_string() << "}";
   return ss.str();
 }
 // }}}

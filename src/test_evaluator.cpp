@@ -377,6 +377,38 @@ bool test_builtin_functions() {
       test<long>{R"(len(""))", 0},
       test<long>{R"(len("four"))", 4},
       test<long>{R"(len("hello world"))", 11},
+      test<long>{R"(
+      let map = fn(arr, f) {
+        let iter = fn(arr, accumulated) {
+          if (len(arr) == 0) {
+            accumulated
+          } else {
+            iter(rest(arr), push(accumulated, f(first(arr))));
+          }
+        };
+
+        iter(arr, []);
+      };
+      let reduce = fn(arr, initial, f) {
+        let iter = fn(arr, result) {
+          if (len(arr) == 0) {
+            result
+          } else {
+            iter(rest(arr), f(result, first(arr)));
+          }
+        };
+
+        iter(arr, initial);
+      };
+      let double = fn(x) { x * 2 };
+      let sum = fn(arr) {
+        reduce(arr, 0, fn(initial, el) { initial + el });
+      };
+
+      let a = [1, 2, 3, 4];
+      sum(map(a, double));
+      )",
+                 20},
   }};
 
   auto pass{true};
