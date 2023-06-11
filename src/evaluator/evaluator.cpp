@@ -3,40 +3,43 @@
 #include <functional>
 #include <iostream>
 
-std::shared_ptr<Object> null() { return std::make_unique<Null>(_NULL); }
-std::shared_ptr<Object> integer(IntType value) {
+std::shared_ptr<Null> null() { return std::make_unique<Null>(_NULL); }
+std::shared_ptr<Integer> integer(IntType value) {
   return std::make_unique<Integer>(value);
 }
-std::shared_ptr<Object> boolean(bool value) {
+std::shared_ptr<Boolean> boolean(bool value) {
   return std::make_unique<Boolean>(value ? _TRUE : _FALSE);
 }
-std::shared_ptr<Object> string(const std::string &value) {
+std::shared_ptr<String> string(const std::string &value) {
   return std::make_unique<String>(value);
 }
-std::shared_ptr<Object> return_value(std::shared_ptr<Object> value) {
+std::shared_ptr<ReturnValue> return_value(std::shared_ptr<Object> value) {
   return std::make_unique<ReturnValue>(value);
 }
-std::shared_ptr<Object> error(std::string message) {
+std::shared_ptr<Error> error(std::string message) {
   return std::make_unique<Error>(message);
 }
-std::shared_ptr<Object> function(std::vector<Identifier> params,
-                                 std::shared_ptr<BlockStatement> body,
-                                 std::shared_ptr<Environment> env) {
-  return std::make_unique<Function>(params, body, env);
+std::shared_ptr<Function> function(std::vector<Identifier> params,
+                                   std::shared_ptr<BlockStatement> body,
+                                   std::shared_ptr<Environment> env) {
+  return std::make_unique<Function>(std::move(params), std::move(body), env);
 }
-std::shared_ptr<Object> array(std::vector<std::shared_ptr<Object>> elements) {
+std::shared_ptr<Array> array(std::vector<std::shared_ptr<Object>> elements) {
   return std::make_unique<Array>(elements);
 }
+std::shared_ptr<Hash> hash(std::unordered_map<HashKey, HashPair> pairs) {
+  return std::make_unique<Hash>(pairs);
+}
 
-std::shared_ptr<Object> unknown_infix(ObjectType left,
-                                      token_types::TokenVariant oper,
-                                      ObjectType right) {
+std::shared_ptr<Error> unknown_infix(ObjectType left,
+                                     token_types::TokenVariant oper,
+                                     ObjectType right) {
   return error("unknown operator: " + std::to_string(left) + " " +
                literal_string(oper) + " " + std::to_string(right));
 }
 
-std::shared_ptr<Object> unknown_prefix(token_types::TokenVariant oper,
-                                       ObjectType right) {
+std::shared_ptr<Error> unknown_prefix(token_types::TokenVariant oper,
+                                      ObjectType right) {
   return error("unknown operator: " + literal_string(oper) +
                std::to_string(right));
 }
@@ -296,6 +299,30 @@ apply_function(std::shared_ptr<Object> obj,
   return error("not a function: " + std::to_string(obj->type()));
 }
 
+std::shared_ptr<Object> eval_hash_literal(
+    std::unordered_map<std::shared_ptr<Expression>, std::shared_ptr<Expression>>
+        node_pairs,
+    std::shared_ptr<Environment> env) {
+  std::unordered_map<HashKey, HashPair> pairs{};
+  for (const auto &k : node_pairs) {
+    auto key{eval(k.first, env)};
+    if (is_error(key.get())) {
+      return key;
+    }
+    if (auto *hash_key{dynamic_cast<Hashable *>(key.get())}) {
+      auto value{eval(k.second, env)};
+      if (is_error(value.get())) {
+        return value;
+      }
+      pairs[hash_key->hash_key()] = HashPair{key, value};
+    } else {
+      return error("unusable as hash key: " + std::to_string(key->type()));
+    }
+  }
+
+  return hash(pairs);
+}
+
 #include <iostream>
 std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
                              std::shared_ptr<Environment> env) {
@@ -315,7 +342,7 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
     if (is_error(val.get())) {
       return val;
     }
-    return env->set(e->identifier.value, val);
+    return env->set(std::move(e->identifier.value), std::move(val));
   } else if (auto *b{dynamic_cast<BlockStatement *>(n)}) {
     return eval_block_statement(b->statements, env);
   } else if (auto *i{dynamic_cast<IfExpression *>(n)}) {
@@ -343,6 +370,8 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
       return elements[0];
     }
     return array(elements);
+  } else if (auto *a{dynamic_cast<HashLiteral *>(n)}) {
+    return eval_hash_literal(a->pairs, env);
   } else if (auto *e{dynamic_cast<CallExpression *>(n)}) {
     auto val{eval(e->function, env)};
     if (is_error(val.get())) {
@@ -364,7 +393,7 @@ std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
     }
     return eval_infix_expression(left, e->oper, right);
   } else if (auto *f{dynamic_cast<FunctionLiteral *>(n)}) {
-    return function(f->params, f->body, env);
+    return function(std::move(f->params), std::move(f->body), env);
   } else if (auto *e{dynamic_cast<IntegerLiteral *>(n)}) {
     return integer(e->value);
   } else if (auto *b{dynamic_cast<BooleanLiteral *>(n)}) {

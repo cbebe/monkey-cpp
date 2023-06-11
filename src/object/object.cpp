@@ -79,6 +79,8 @@ std::string to_string(ObjectType t) {
     return "STRING";
   case BUILTIN_OBJ:
     return "BUILTIN";
+  case HASH_OBJ:
+    return "HASH";
   default:
     return "ILLEGAL";
   }
@@ -88,7 +90,7 @@ std::string to_string(ObjectType t) {
 Function::Function(std::vector<Identifier> params,
                    std::shared_ptr<BlockStatement> body,
                    std::shared_ptr<Environment> env)
-    : params(params), body(body), env(env) {}
+    : params(std::move(params)), body(std::move(body)), env(env) {}
 std::string Function::inspect() const {
   std::stringstream ss;
   ss << "fn(";
@@ -106,3 +108,20 @@ ObjectType Function::type() const { return FUNCTION_OBJ; }
 Builtin::Builtin(BuiltinFunction fn) : fn(fn) {}
 std::string Builtin::inspect() const { return "builtin function"; }
 ObjectType Builtin::type() const { return BUILTIN_OBJ; }
+
+Hash::Hash(std::unordered_map<HashKey, HashPair> pairs) : pairs(pairs) {}
+std::string Hash::inspect() const {
+  std::stringstream ss;
+  auto size{pairs.size()};
+  size_t i = 0;
+  ss << "{";
+  for (const auto &k : pairs) {
+    ss << k.second.key->inspect() << ": " << k.second.value->inspect();
+    if (i < size - 1) {
+      ss << ", ";
+    }
+  }
+  ss << "}";
+  return ss.str();
+}
+ObjectType Hash::type() const { return HASH_OBJ; }

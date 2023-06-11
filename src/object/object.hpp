@@ -15,6 +15,7 @@ enum ObjectType {
   FUNCTION_OBJ,
   BUILTIN_OBJ,
   ARRAY_OBJ,
+  HASH_OBJ,
 };
 
 namespace std {
@@ -43,30 +44,35 @@ template <> struct hash<HashKey> {
 };
 } // namespace std
 
-class Integer : public Object {
+class Hashable {
+public:
+  virtual HashKey hash_key() const = 0;
+};
+
+class Integer : public Object, public Hashable {
 public:
   Integer(IntType value);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
-  HashKey hash_key() const;
+  virtual HashKey hash_key() const override;
   IntType value;
 };
 
-class Boolean : public Object {
+class Boolean : public Object, public Hashable {
 public:
   Boolean(bool value);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
-  HashKey hash_key() const;
+  virtual HashKey hash_key() const override;
   bool value;
 };
 
-class String : public Object {
+class String : public Object, public Hashable {
 public:
   String(const std::string &);
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
-  HashKey hash_key() const;
+  virtual HashKey hash_key() const override;
   std::string value;
 };
 
@@ -122,4 +128,17 @@ public:
   virtual std::string inspect() const override;
   virtual ObjectType type() const override;
   BuiltinFunction fn;
+};
+
+struct HashPair {
+  std::shared_ptr<Object> key;
+  std::shared_ptr<Object> value;
+};
+
+class Hash : public Object {
+public:
+  Hash(std::unordered_map<HashKey, HashPair>);
+  virtual std::string inspect() const override;
+  virtual ObjectType type() const override;
+  std::unordered_map<HashKey, HashPair> pairs;
 };

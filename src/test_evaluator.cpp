@@ -19,6 +19,7 @@ bool test_string_concatenation();
 bool test_builtin_functions();
 bool test_array_literals();
 bool test_array_index_expression();
+bool test_hash_literals();
 
 int main() {
   bool pass{true};
@@ -31,11 +32,12 @@ int main() {
   TEST(test_error_handling, pass);
   TEST(test_let_statements, pass);
   TEST(test_function_object, pass);
-  TEST(test_function_application, pass);
+  TEST(test_function_application, pass); // leaks!!
   TEST(test_string_concatenation, pass);
-  TEST(test_builtin_functions, pass);
+  TEST(test_builtin_functions, pass); // leaks!!
   TEST(test_array_literals, pass);
   TEST(test_array_index_expression, pass);
+  TEST(test_hash_literals, pass);
   return pass ? 0 : 1;
 }
 
@@ -318,12 +320,12 @@ bool test_function_object() {
 bool test_function_application() {
   auto tests{std::vector{
       // clang-format off
-      test<IntType>{"let identity = fn(x) { x; }; identity(5);", 5},
-      test<IntType>{"let identity = fn(x) { return x; }; identity(5);", 5},
-      test<IntType>{"let double = fn(x) { x * 2; }; double(5);", 10},
-      test<IntType>{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-      test<IntType>{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
-      test<IntType>{"fn(x) { x; }(5)", 5},
+      test<IntType>{"let identity = fn(x) { x; }; identity(5);", 5}, // leaks!!
+      test<IntType>{"let identity = fn(x) { return x; }; identity(5);", 5}, // leaks!!
+      test<IntType>{"let double = fn(x) { x * 2; }; double(5);", 10}, // leaks!!
+      test<IntType>{"let add = fn(x, y) { x + y; }; add(5, 5);", 10}, // leaks!!
+      test<IntType>{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20}, // leaks!!
+      test<IntType>{"fn(x) { x; }(5)", 5}, // this somehow doesn't leak so it's about the function being bound to a variable?
       // clang-format on
   }};
 
@@ -356,41 +358,44 @@ bool test_string_concatenation() {
 
 bool test_builtin_functions() {
   auto tests{std::vector{
+      // clang-format off
       test<IntType>{R"(len(""))", 0},
       test<IntType>{R"(len("four"))", 4},
       test<IntType>{R"(len("hello world"))", 11},
+      // clang-format on
       test<IntType>{R"(
-      let map = fn(arr, f) {
-        let iter = fn(arr, accumulated) {
-          if (len(arr) == 0) {
-            accumulated
-          } else {
-            iter(rest(arr), push(accumulated, f(first(arr))));
-          }
+        let map = fn(arr, f) {
+          let iter = fn(arr, accumulated) {
+            if (len(arr) == 0) {
+              accumulated
+            } else {
+              iter(rest(arr), push(accumulated, f(first(arr))));
+            }
+          };
+
+          iter(arr, []);
+        };
+        let reduce = fn(arr, initial, f) {
+          let iter = fn(arr, result) {
+            if (len(arr) == 0) {
+              result
+            } else {
+              iter(rest(arr), f(result, first(arr)));
+            }
+          };
+
+          iter(arr, initial);
+        };
+        let double = fn(x) { x * 2 };
+        let sum = fn(arr) {
+          reduce(arr, 0, fn(initial, el) { initial + el });
         };
 
-        iter(arr, []);
-      };
-      let reduce = fn(arr, initial, f) {
-        let iter = fn(arr, result) {
-          if (len(arr) == 0) {
-            result
-          } else {
-            iter(rest(arr), f(result, first(arr)));
-          }
-        };
-
-        iter(arr, initial);
-      };
-      let double = fn(x) { x * 2 };
-      let sum = fn(arr) {
-        reduce(arr, 0, fn(initial, el) { initial + el });
-      };
-
-      let a = [1, 2, 3, 4];
-      sum(map(a, double));
-      )",
-                    20},
+        let a = [1, 2, 3, 4];
+        sum(map(a, double));
+        )",
+                    20}, // yep, this is the only one that leaks so it's about
+                         // binding the function to identifiers...
   }};
 
   auto pass{true};
@@ -457,4 +462,45 @@ bool test_array_index_expression() {
     }
   }
   return pass;
+}
+
+bool test_hash_literals() {
+  auto evaluated{h_test_eval(R"(
+    let two = "two";
+    {
+          "one": 10 - 9,
+          two: 1 + 1,
+          "thr" + "ee": 6 / 2,
+          4: 4,
+          true: 5,
+          false: 6
+    })")};
+  auto result{true};
+  auto hash{h_assert_obj_type<Hash>(evaluated.get(), result)};
+  if (!result) {
+    return false;
+  }
+  auto expected{std::unordered_map<HashKey, long>{
+      {string("one")->hash_key(), 1},
+      {string("two")->hash_key(), 2},
+      {string("three")->hash_key(), 3},
+      {integer(4)->hash_key(), 4},
+      {_TRUE.hash_key(), 5},
+      {_FALSE.hash_key(), 6},
+  }};
+  if (!h_assert_value<size_t>(hash->pairs.size(), expected.size())) {
+    return false;
+  }
+  for (const auto &k : expected) {
+    if (hash->pairs.contains(k.first)) {
+      if (!h_test_literal<Integer, IntType>(hash->pairs[k.first].value.get(),
+                                            k.second)) {
+        return false;
+      }
+    } else {
+      std::cout << "no pair for given key in pairs" << std::endl;
+      return false;
+    }
+  }
+  return true;
 }
