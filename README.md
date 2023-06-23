@@ -46,4 +46,4 @@ me.
 
 I didn't really get to learn how to use CMake and testing frameworks but it's
 not like I'll be starting new projects in C++ anyway. I'm going to write the
-compiler and virtual machine in Rust.
+[compiler and virtual machine in Rust](https://github.com/cbebe/monkey-rs).
