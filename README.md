@@ -9,18 +9,18 @@ The project is an interpreter for the Monkey programming language from the book
 
 I learned C++ just like how normal CompE kids do, which is in second year
 University. It was my first "serious" programming language when I didn't know
-any better how much easier it could be. After finishing [my first C++ big
-school project](https://github.com/cbebe/Checkers-AI), I learned JavaScript and
-never looked back at C++.
+any better how much easier it could be. After finishing
+[my first C++ big school project](https://github.com/cbebe/Checkers-AI), I
+learned JavaScript and never looked back at C++.
 
-I learned more about programming fundamentals after that, and how computers
-work in general. I tried picking up C++ again in 4th year for my first
-Operating Systems assignment and quickly got overwhelmed. I ended up doing the
-assignment in C, which I found way simpler.
+I learned more about programming fundamentals after that, and how computers work
+in general. I tried picking up C++ again in 4th year for my first Operating
+Systems assignment and quickly got overwhelmed. I ended up doing the assignment
+in C, which I found way simpler.
 
 I ended up doing the last assignment in C++ (it was the only other option for a
-programming language) because I was too lazy to implement my own hashtable in
-C, but I kept it C-style with only a little bit of OOP sprinkled in.
+programming language) because I was too lazy to implement my own hashtable in C,
+but I kept it C-style with only a little bit of OOP sprinkled in.
 
 ## Why C++ Now
 
@@ -40,9 +40,8 @@ the book, I wasn't able to fix the memory leak when binding functions to
 variables.
 
 As for learning C++, I think I've had enough of it. I would probably be less
-intimidated to read and write C++ now. I'd pick it for a school project if I
-had to choose between C or C++, but it definitely is still not a top choice for
-me.
+intimidated to read and write C++ now. I'd pick it for a school project if I had
+to choose between C or C++, but it definitely is still not a top choice for me.
 
 I didn't really get to learn how to use CMake and testing frameworks but it's
 not like I'll be starting new projects in C++ anyway. I'm going to write the
