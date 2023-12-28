@@ -44,5 +44,6 @@ intimidated to read and write C++ now. I'd pick it for a school project if I had
 to choose between C or C++, but it definitely is still not a top choice for me.
 
 I didn't really get to learn how to use CMake and testing frameworks but it's
-not like I'll be starting new projects in C++ anyway. I'm going to write the
+not like ~~I'll be starting new projects in C++ anyway~~ (EDIT: I am using CMake
+and it's painful). I'm going to write the
 [compiler and virtual machine in Rust](https://github.com/cbebe/monkey-rs).
