@@ -85,6 +85,8 @@ std::string to_string(ObjectType t) {
     return "ARRAY";
   case HASH_OBJ:
     return "HASH";
+  default:
+    return "INVALID_OBJECT_TYPE";
   }
 }
 } // namespace std
