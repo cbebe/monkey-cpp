@@ -16,7 +16,7 @@ template <> struct hash<token_types::TokenVariant> {
 };
 } // namespace std
 
-enum Precedence {
+enum class Precedence {
   _ = 0,
   LOWEST,
   EQUALS,      // ==

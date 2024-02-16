@@ -87,12 +87,12 @@ std::vector<std::shared_ptr<Expression>> Parser::parse_expression_list() {
     return args;
   }
   next_token();
-  args.push_back(parse_expression(LOWEST));
+  args.push_back(parse_expression(Precedence::LOWEST));
 
   while (peek_token.is_type<Comma>()) {
     next_token();
     next_token();
-    args.push_back(parse_expression(LOWEST));
+    args.push_back(parse_expression(Precedence::LOWEST));
   }
 
   if (!expect_peek<T>()) {
@@ -114,7 +114,7 @@ std::shared_ptr<Statement> Parser::parse_statement() {
 }
 
 std::shared_ptr<Statement> Parser::parse_expression_statement() {
-  auto expr{parse_expression(LOWEST)};
+  auto expr{parse_expression(Precedence::LOWEST)};
   if (peek_token.is_type<Semicolon>()) {
     next_token();
   }
@@ -125,7 +125,7 @@ std::shared_ptr<Statement> Parser::parse_expression_statement() {
 std::shared_ptr<Statement> Parser::parse_return_statement() {
   next_token();
 
-  auto ret_val{parse_expression(LOWEST)};
+  auto ret_val{parse_expression(Precedence::LOWEST)};
   if (peek_token.is_type<Semicolon>()) {
     next_token();
   }
@@ -145,7 +145,7 @@ std::shared_ptr<Statement> Parser::parse_let_statement() {
   }
   next_token();
 
-  auto value{parse_expression(LOWEST)};
+  auto value{parse_expression(Precedence::LOWEST)};
 
   if (peek_token.is_type<Semicolon>()) {
     next_token();
@@ -168,14 +168,14 @@ std::shared_ptr<BlockStatement> Parser::parse_block_statement() {
 }
 
 std::unordered_map<TokenVariant, Precedence> precedences{
-    {Eq{}, EQUALS},      {NotEq{}, EQUALS},     {LT{}, LESSGREATER},
-    {GT{}, LESSGREATER}, {Plus{}, SUM},         {Minus{}, SUM},
-    {Slash{}, PRODUCT},  {Asterisk{}, PRODUCT}, {LParen{}, CALL},
-    {LSquarely{}, INDEX}};
+    {Eq{}, Precedence::EQUALS},      {NotEq{}, Precedence::EQUALS},
+    {LT{}, Precedence::LESSGREATER}, {GT{}, Precedence::LESSGREATER},
+    {Plus{}, Precedence::SUM},       {Minus{}, Precedence::SUM},
+    {Slash{}, Precedence::PRODUCT},  {Asterisk{}, Precedence::PRODUCT},
+    {LParen{}, Precedence::CALL},    {LSquarely{}, Precedence::INDEX}};
 
 Precedence get_precedence(TokenVariant v) {
-  auto precedence{precedences[v]};
-  return precedence ? precedence : LOWEST;
+  return precedences.count(v) > 0 ? precedences[v] : Precedence::LOWEST;
 }
 
 Precedence Parser::peek_predence() { return get_precedence(peek_token.value); }
@@ -229,12 +229,12 @@ std::shared_ptr<Expression> Parser::parse_hash_literal() {
 
   while (!peek_token.is_type<RSquirly>()) {
     next_token();
-    auto key{parse_expression(LOWEST)};
+    auto key{parse_expression(Precedence::LOWEST)};
     if (!expect_peek<Colon>()) {
       return nullptr;
     }
     next_token();
-    auto value{parse_expression(LOWEST)};
+    auto value{parse_expression(Precedence::LOWEST)};
     pairs[key] = value;
 
     if (!peek_token.is_type<RSquirly>() && !expect_peek<Comma>()) {
@@ -266,7 +266,7 @@ std::shared_ptr<Expression> Parser::parse_if_expression() {
     return nullptr;
   }
   next_token();
-  auto condition{parse_expression(LOWEST)};
+  auto condition{parse_expression(Precedence::LOWEST)};
   if (!expect_peek<RParen>()) {
     return nullptr;
   }
@@ -289,7 +289,7 @@ std::shared_ptr<Expression> Parser::parse_if_expression() {
 
 std::shared_ptr<Expression> Parser::parse_grouped_expression() {
   next_token();
-  auto expr{parse_expression(LOWEST)};
+  auto expr{parse_expression(Precedence::LOWEST)};
   if (!expect_peek<RParen>()) {
     return nullptr;
   }
@@ -299,7 +299,7 @@ std::shared_ptr<Expression> Parser::parse_grouped_expression() {
 std::shared_ptr<Expression> Parser::parse_prefix_expression() {
   auto oper{cur_token.value};
   next_token();
-  auto right{parse_expression(PREFIX)};
+  auto right{parse_expression(Precedence::PREFIX)};
   return std::make_shared<PrefixExpression>(oper, std::move(right));
 }
 
@@ -323,7 +323,7 @@ Parser::parse_call_expression(std::shared_ptr<Expression> caller) {
 std::shared_ptr<Expression>
 Parser::parse_index_expression(std::shared_ptr<Expression> left) {
   next_token();
-  auto index{parse_expression(LOWEST)};
+  auto index{parse_expression(Precedence::LOWEST)};
   if (!expect_peek<RSquarely>()) {
     return nullptr;
   }

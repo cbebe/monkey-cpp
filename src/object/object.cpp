@@ -7,12 +7,12 @@ bool HashKey::operator==(const HashKey &other) const {
 
 Integer::Integer(IntType value) : value(value) {}
 std::string Integer::inspect() const { return std::to_string(value); }
-ObjectType Integer::type() const { return INTEGER_OBJ; }
+ObjectType Integer::type() const { return ObjectType::INTEGER_OBJ; }
 HashKey Integer::hash_key() const { return HashKey{type(), (uint64_t)value}; }
 
 Boolean::Boolean(bool value) : value(value) {}
 std::string Boolean::inspect() const { return value ? "true" : "false"; }
-ObjectType Boolean::type() const { return BOOLEAN_OBJ; }
+ObjectType Boolean::type() const { return ObjectType::BOOLEAN_OBJ; }
 HashKey Boolean::hash_key() const {
   return HashKey{type(), (uint64_t)(value ? 1 : 0)};
 }
@@ -32,7 +32,7 @@ uint64_t fnv64(const std::string &str) {
 
 String::String(const std::string &value) : value(value) {}
 std::string String::inspect() const { return value; }
-ObjectType String::type() const { return STRING_OBJ; }
+ObjectType String::type() const { return ObjectType::STRING_OBJ; }
 HashKey String::hash_key() const { return HashKey{type(), fnv64(value)}; }
 
 Array::Array(std::vector<std::shared_ptr<Object>> elements)
@@ -49,44 +49,42 @@ std::string Array::inspect() const {
   ss << "]";
   return ss.str();
 }
-ObjectType Array::type() const { return ARRAY_OBJ; }
+ObjectType Array::type() const { return ObjectType::ARRAY_OBJ; }
 
 std::string Null::inspect() const { return "null"; }
-ObjectType Null::type() const { return NULL_OBJ; }
+ObjectType Null::type() const { return ObjectType::NULL_OBJ; }
 
 ReturnValue::ReturnValue(std::shared_ptr<Object> value) : value(value) {}
 std::string ReturnValue::inspect() const { return value->inspect(); }
-ObjectType ReturnValue::type() const { return RETURN_VALUE_OBJ; }
+ObjectType ReturnValue::type() const { return ObjectType::RETURN_VALUE_OBJ; }
 
 Error::Error(std::string message) : value(message) {}
 std::string Error::inspect() const { return "ERROR: " + value; }
-ObjectType Error::type() const { return ERROR_OBJ; }
+ObjectType Error::type() const { return ObjectType::ERROR_OBJ; }
 
 namespace std {
 std::string to_string(ObjectType t) {
   switch (t) {
-  case INTEGER_OBJ:
+  case ObjectType::INTEGER_OBJ:
     return "INTEGER";
-  case BOOLEAN_OBJ:
+  case ObjectType::BOOLEAN_OBJ:
     return "BOOLEAN";
-  case STRING_OBJ:
+  case ObjectType::STRING_OBJ:
     return "STRING";
-  case NULL_OBJ:
+  case ObjectType::NULL_OBJ:
     return "NULL";
-  case RETURN_VALUE_OBJ:
+  case ObjectType::RETURN_VALUE_OBJ:
     return "RETURN";
-  case ERROR_OBJ:
+  case ObjectType::ERROR_OBJ:
     return "ERROR";
-  case FUNCTION_OBJ:
+  case ObjectType::FUNCTION_OBJ:
     return "FUNCTION";
-  case BUILTIN_OBJ:
+  case ObjectType::BUILTIN_OBJ:
     return "BUILTIN";
-  case ARRAY_OBJ:
+  case ObjectType::ARRAY_OBJ:
     return "ARRAY";
-  case HASH_OBJ:
+  case ObjectType::HASH_OBJ:
     return "HASH";
-  default:
-    return "INVALID_OBJECT_TYPE";
   }
 }
 } // namespace std
@@ -107,11 +105,11 @@ std::string Function::inspect() const {
   ss << ") {\n" << body->to_string() << "\n}";
   return ss.str();
 }
-ObjectType Function::type() const { return FUNCTION_OBJ; }
+ObjectType Function::type() const { return ObjectType::FUNCTION_OBJ; }
 
 Builtin::Builtin(BuiltinFunction fn) : fn(fn) {}
 std::string Builtin::inspect() const { return "builtin function"; }
-ObjectType Builtin::type() const { return BUILTIN_OBJ; }
+ObjectType Builtin::type() const { return ObjectType::BUILTIN_OBJ; }
 
 Hash::Hash(std::unordered_map<HashKey, HashPair> pairs) : pairs(pairs) {}
 std::string Hash::inspect() const {
@@ -128,4 +126,4 @@ std::string Hash::inspect() const {
   ss << "}";
   return ss.str();
 }
-ObjectType Hash::type() const { return HASH_OBJ; }
+ObjectType Hash::type() const { return ObjectType::HASH_OBJ; }

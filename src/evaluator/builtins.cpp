@@ -7,10 +7,10 @@ std::shared_ptr<Object> _len(std::vector<std::shared_ptr<Object>> args) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
   }
-  if (args[0]->type() == STRING_OBJ) {
+  if (args[0]->type() == ObjectType::STRING_OBJ) {
     auto str{std::static_pointer_cast<String>(args[0])};
     return integer(str->value.length());
-  } else if (args[0]->type() == ARRAY_OBJ) {
+  } else if (args[0]->type() == ObjectType::ARRAY_OBJ) {
     auto arr{std::static_pointer_cast<Array>(args[0])};
     return integer(arr->elements.size());
   }
@@ -23,7 +23,7 @@ std::shared_ptr<Object> _first(std::vector<std::shared_ptr<Object>> args) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
   }
-  if (args[0]->type() == ARRAY_OBJ) {
+  if (args[0]->type() == ObjectType::ARRAY_OBJ) {
     auto arr{std::static_pointer_cast<Array>(args[0])};
     if (arr->elements.size() > 0) {
       return arr->elements[0];
@@ -31,8 +31,9 @@ std::shared_ptr<Object> _first(std::vector<std::shared_ptr<Object>> args) {
       return null();
     }
   }
-  return error("argument to `first` must be " + std::to_string(ARRAY_OBJ) +
-               ", got " + std::to_string(args[0]->type()));
+  return error("argument to `first` must be " +
+               std::to_string(ObjectType::ARRAY_OBJ) + ", got " +
+               std::to_string(args[0]->type()));
 }
 
 std::shared_ptr<Object> _last(std::vector<std::shared_ptr<Object>> args) {
@@ -40,7 +41,7 @@ std::shared_ptr<Object> _last(std::vector<std::shared_ptr<Object>> args) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
   }
-  if (args[0]->type() == ARRAY_OBJ) {
+  if (args[0]->type() == ObjectType::ARRAY_OBJ) {
     auto arr{std::static_pointer_cast<Array>(args[0])};
     auto size{arr->elements.size()};
     if (size > 0) {
@@ -49,8 +50,9 @@ std::shared_ptr<Object> _last(std::vector<std::shared_ptr<Object>> args) {
       return null();
     }
   }
-  return error("argument to `last` must be " + std::to_string(ARRAY_OBJ) +
-               ", got " + std::to_string(args[0]->type()));
+  return error("argument to `last` must be " +
+               std::to_string(ObjectType::ARRAY_OBJ) + ", got " +
+               std::to_string(args[0]->type()));
 }
 
 std::shared_ptr<Object> _rest(std::vector<std::shared_ptr<Object>> args) {
@@ -58,7 +60,7 @@ std::shared_ptr<Object> _rest(std::vector<std::shared_ptr<Object>> args) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=1");
   }
-  if (args[0]->type() == ARRAY_OBJ) {
+  if (args[0]->type() == ObjectType::ARRAY_OBJ) {
     auto arr{std::static_pointer_cast<Array>(args[0])};
     auto size{arr->elements.size()};
     if (size > 0) {
@@ -67,8 +69,9 @@ std::shared_ptr<Object> _rest(std::vector<std::shared_ptr<Object>> args) {
       return null();
     }
   }
-  return error("argument to `rest` must be " + std::to_string(ARRAY_OBJ) +
-               ", got " + std::to_string(args[0]->type()));
+  return error("argument to `rest` must be " +
+               std::to_string(ObjectType::ARRAY_OBJ) + ", got " +
+               std::to_string(args[0]->type()));
 }
 
 std::shared_ptr<Object> _push(std::vector<std::shared_ptr<Object>> args) {
@@ -76,14 +79,15 @@ std::shared_ptr<Object> _push(std::vector<std::shared_ptr<Object>> args) {
     return error("wrong number of arguments. got=" +
                  std::to_string(args.size()) + ", want=2");
   }
-  if (args[0]->type() == ARRAY_OBJ) {
+  if (args[0]->type() == ObjectType::ARRAY_OBJ) {
     auto arr{std::static_pointer_cast<Array>(args[0])};
     auto copy{std::vector(arr->elements.begin(), arr->elements.end())};
     copy.push_back(args[1]);
     return array(copy);
   }
-  return error("argument to `push` must be " + std::to_string(ARRAY_OBJ) +
-               ", got " + std::to_string(args[0]->type()));
+  return error("argument to `push` must be " +
+               std::to_string(ObjectType::ARRAY_OBJ) + ", got " +
+               std::to_string(args[0]->type()));
 }
 
 std::shared_ptr<Object> _puts(std::vector<std::shared_ptr<Object>> args) {

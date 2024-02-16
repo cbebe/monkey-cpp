@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-enum ObjectType {
+enum class ObjectType : uint8_t {
   INTEGER_OBJ,
   BOOLEAN_OBJ,
   STRING_OBJ,
@@ -39,7 +39,7 @@ namespace std {
 template <> struct hash<HashKey> {
   std::size_t operator()(const HashKey &k) const {
     std::hash<uint64_t> hash{};
-    return hash(k.type) ^ hash(k.value);
+    return hash((uint8_t)k.type) ^ hash(k.value);
   }
 };
 } // namespace std

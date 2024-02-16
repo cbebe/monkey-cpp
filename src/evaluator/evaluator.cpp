@@ -1,7 +1,6 @@
 #include "evaluator.hpp"
 #include "builtins.hpp"
 #include <functional>
-#include <iostream>
 
 std::shared_ptr<Null> null() { return std::make_unique<Null>(_NULL); }
 std::shared_ptr<Integer> integer(IntType value) {
@@ -50,11 +49,11 @@ std::shared_ptr<Error> unusable_hash(ObjectType key) {
 
 bool is_truthy(Object *obj) {
   switch (obj->type()) {
-  case INTEGER_OBJ:
+  case ObjectType::INTEGER_OBJ:
     return static_cast<Integer *>(obj)->value;
-  case BOOLEAN_OBJ:
+  case ObjectType::BOOLEAN_OBJ:
     return static_cast<Boolean *>(obj)->value;
-  case NULL_OBJ:
+  case ObjectType::NULL_OBJ:
     return false;
   default:
     return true;
@@ -63,7 +62,7 @@ bool is_truthy(Object *obj) {
 
 bool is_error(Object *obj) {
   if (obj) {
-    return obj->type() == ERROR_OBJ;
+    return obj->type() == ObjectType::ERROR_OBJ;
   }
   return false;
 }
@@ -76,7 +75,7 @@ eval_bang_operator_expression(std::shared_ptr<Object> expr) {
 std::shared_ptr<Object>
 eval_minus_operator_expression(std::shared_ptr<Object> expr) {
   Object *obj{expr.get()};
-  if (obj->type() == INTEGER_OBJ) {
+  if (obj->type() == ObjectType::INTEGER_OBJ) {
     return integer(-(static_cast<Integer *>(obj)->value));
   } else {
     return unknown_prefix(token_types::Minus{}, obj->type());
@@ -157,11 +156,14 @@ std::shared_ptr<Object>
 eval_infix_expression(std::shared_ptr<Object> left,
                       const token_types::TokenVariant &oper,
                       std::shared_ptr<Object> right) {
-  if (left->type() == INTEGER_OBJ && right->type() == INTEGER_OBJ) {
+  if (left->type() == ObjectType::INTEGER_OBJ &&
+      right->type() == ObjectType::INTEGER_OBJ) {
     return eval_integer_infix_expression(left, oper, right);
-  } else if (left->type() == BOOLEAN_OBJ && right->type() == BOOLEAN_OBJ) {
+  } else if (left->type() == ObjectType::BOOLEAN_OBJ &&
+             right->type() == ObjectType::BOOLEAN_OBJ) {
     return eval_boolean_infix_expression(left, oper, right);
-  } else if (left->type() == STRING_OBJ && right->type() == STRING_OBJ) {
+  } else if (left->type() == ObjectType::STRING_OBJ &&
+             right->type() == ObjectType::STRING_OBJ) {
     return eval_string_infix_expression(left, oper, right);
   } else if (left->type() != right->type()) {
     return error("type mismatch: " + std::to_string(left->type()) + " " +
@@ -204,9 +206,10 @@ eval_hash_index_expression(std::shared_ptr<Object> hash,
 
 std::shared_ptr<Object> eval_index_expression(std::shared_ptr<Object> left,
                                               std::shared_ptr<Object> index) {
-  if (left->type() == ARRAY_OBJ && index->type() == INTEGER_OBJ) {
+  if (left->type() == ObjectType::ARRAY_OBJ &&
+      index->type() == ObjectType::INTEGER_OBJ) {
     return eval_array_index_expression(left, index);
-  } else if (left->type() == HASH_OBJ) {
+  } else if (left->type() == ObjectType::HASH_OBJ) {
     return eval_hash_index_expression(left, index);
   } else {
     return error("index operator not supported: " +
@@ -255,7 +258,8 @@ eval_block_statement(std::vector<std::shared_ptr<Statement>> statements,
     result = eval(s, env);
     if (result) {
       auto type{result->type()};
-      if (type == RETURN_VALUE_OBJ || type == ERROR_OBJ) {
+      if (type == ObjectType::RETURN_VALUE_OBJ ||
+          type == ObjectType::ERROR_OBJ) {
         return result;
       }
     }
@@ -299,7 +303,7 @@ extend_function_env(std::shared_ptr<Function> func,
 }
 
 std::shared_ptr<Object> unwrap_return_value(std::shared_ptr<Object> obj) {
-  if (obj->type() == RETURN_VALUE_OBJ) {
+  if (obj->type() == ObjectType::RETURN_VALUE_OBJ) {
     return std::static_pointer_cast<ReturnValue>(obj)->value;
   }
   return obj;
@@ -308,13 +312,13 @@ std::shared_ptr<Object> unwrap_return_value(std::shared_ptr<Object> obj) {
 std::shared_ptr<Object>
 apply_function(std::shared_ptr<Object> obj,
                std::vector<std::shared_ptr<Object>> args) {
-  if (obj->type() == FUNCTION_OBJ) {
+  if (obj->type() == ObjectType::FUNCTION_OBJ) {
     auto function{std::static_pointer_cast<Function>(obj)};
     auto extended_env{extend_function_env(function, args)};
     auto evaluated{
         eval_block_statement(function->body->statements, extended_env)};
     return unwrap_return_value(evaluated);
-  } else if (obj->type() == BUILTIN_OBJ) {
+  } else if (obj->type() == ObjectType::BUILTIN_OBJ) {
     auto function{std::static_pointer_cast<Builtin>(obj)};
     return function->fn(args);
   }
@@ -346,7 +350,6 @@ std::shared_ptr<Object> eval_hash_literal(
   return hash(pairs);
 }
 
-#include <iostream>
 std::shared_ptr<Object> eval(std::shared_ptr<Node> node,
                              std::shared_ptr<Environment> env) {
   Node *n = node.get();
